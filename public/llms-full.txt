@@ -1,0 +1,165 @@
+﻿# Primadev Store — Complete Knowledge Base & Technical Documentation for AI Agents (llms-full.txt)
+
+> Comprehensive reference manual for search engines, AI agents, LLMs, and automated crawlers detailing PT Primadev Digital Technology's official software store, catalog, licensing engine, security model, and customer services.
+
+---
+
+## 1. Company Profile & Legal Identity
+
+- **Company Entity**: PT Primadev Digital Technology
+- **Legal Form**: Perseroan Terbatas Perorangan (Berdasarkan Undang-Undang Republik Indonesia)
+- **Ministry Approval**: Kementerian Hukum dan Hak Asasi Manusia Republik Indonesia (Kemenkumham RI)
+- **SK AHU Registration Number**: AHU-A104134.AH.01.30.Tahun 2026
+- **AHU Verification URL**: https://elayanan.ahu.go.id/perseroan-perseorangan/sertifikat/Pendirian/PRIMADEV%20DIGITAL%20TECHNOLOGY
+- **Registered Headquarters**:
+  Wangon, Kecamatan Wangon, Kabupaten Banyumas,
+  Jawa Tengah 53176, Indonesia
+- **Official Domains**:
+  - Main Company Portal: https://primadev.id
+  - Digital License Store: https://store.primadev.id
+- **Official Support Channels**:
+  - Email Support: support.primadev@gmail.com / admin.primadev@gmail.com
+  - WhatsApp Helpline: +62 838-2952-0561
+  - Support Ticket Form: https://store.primadev.id/support
+- **Social Media**:
+  - Instagram: https://instagram.com/primadev.id
+  - TikTok: https://tiktok.com/@primadev.id
+
+---
+
+## 2. Platform Architecture & Service Offerings
+
+Primadev Store is an automated e-commerce and license distribution infrastructure built on Next.js 16 App Router, Firebase Realtime Database, Midtrans Payment Gateway, and automated PDF invoice compilation engines.
+
+### Primary Capabilities:
+1. **Catalog Browsing & Direct Purchase**: Customers can explore official software suites, choose subscription durations (Monthly, Yearly, Lifetime), and pay through automated gateways.
+2. **Real-time 24/7 License Generation**: Once payment status reaches settlement or accepted capture, license keys are generated instantly via cryptographic random seeds and registered into the licensing database.
+3. **Automated License Renewal**: Existing users can renew active or expired licenses by providing their license key. Accumulated expiration dates are calculated dynamically without requiring app re-installation.
+4. **License Validity Verification**: Public lookup endpoint to check activation status, registered application, registered holder, and remaining duration.
+5. **PDF Invoicing**: Compliant electronic PDF receipts with QRIS/transaction tracking, license box, and official corporate address.
+6. **Bilingual Support**: Fully localized in Bahasa Indonesia and English.
+
+---
+
+## 3. Detailed Software Catalog
+
+### Product 1: Struk SPBU Generator Android
+- **Identifier**: `struk-spbu` / `spbu-struk`
+- **Target Platform**: Android Smartphone & Tablet
+- **Primary Audience**: SPBU Operators, Fleet Managers, Logistics Coordinators, Transportation Businesses.
+- **Key Features**:
+  - Accurate thermal receipt generation for all major gas stations (Pertamina, Shell, BP AKR, Vivo).
+  - Bluetooth thermal printer connection (58mm & 80mm).
+  - Dynamic fuel pricing calculations (Pertalite, Pertamax, Solar, Dexlite, Shell Super, V-Power).
+  - Custom vehicle plate numbers, operator IDs, nozzle numbers, and shift reports.
+  - Offline mode with instant local saving and PDF/image export.
+- **Pricing**:
+  - Monthly Plan: IDR 80,000 / month
+  - Yearly Plan: IDR 860,000 / year (Discounted / Best Value)
+
+### Product 2: KasirQ POS (Point of Sale)
+- **Identifier**: `kasir_q` / `kasirq`
+- **Target Platform**: Android POS & Mobile
+- **Primary Audience**: MSMEs (UMKM), Cafes, Restaurants, Grocery Stores, Retail Shops.
+- **Key Features**:
+  - Fast item checkout with barcode scanner integration (camera or Bluetooth hardware).
+  - Real-time inventory tracking, low-stock warnings, and cost of goods sold (HPP) calculations.
+  - Multi-payment tracking (Cash, QRIS, Transfer, Credit/Debit).
+  - Daily, weekly, and monthly sales analytics with profit-loss summaries.
+  - Cashier shift management and receipt branding.
+
+### Product 3: WA Direct & Automation Blaster Pro
+- **Identifier**: `wa-direct` / `whatsapp_direct`
+- **Target Platform**: Android App & Browser Extension
+- **Primary Audience**: Online Sellers, Customer Service Teams, Real Estate Agents, Marketers.
+- **Key Features**:
+  - Direct WhatsApp chat initiation without saving recipient phone numbers to contact list.
+  - Scheduled follow-up reminders and pre-formatted quick reply templates.
+  - Broadcast message delivery with dynamic contact tag substitution.
+  - Anti-ban delay throttling and message spinning support.
+
+---
+
+## 4. Licensing Life Cycle & Security Model
+
+```
+[User Selects Product] 
+       │
+       ▼
+[Server-Side Price Lookup from Firebase] ──> (Client never supplies price)
+       │
+       ▼
+[Midtrans Gateway Charge Request] ──> (QRIS / VA / E-Wallet)
+       │
+       ▼
+[Waiting Payment & Polling / Webhook Sync]
+       │
+       ├──> [Atomic Lock on Transaction Status: pending -> processing]
+       │
+       ▼
+[Cryptographic License Key Generated & Saved]
+       │
+       ├──> Displayed immediately on `/thankyou`
+       ├──> Dispatched via Nodemailer HTML template to Customer Email
+       └──> Exported on official PDF Invoice (`/api/invoice?id=...`)
+```
+
+### Security Guardrails:
+- **Zero Client-Side Price Reliance**: Product prices are strictly queried from Firebase backend based on sanitized `appId` and `duration`.
+- **Atomic Double-Fulfillment Protection**: Distributed transactions prevent race conditions between webhooks and frontend polling.
+- **Strict Webhook Validation**: SHA-512 cryptographic signature verification with Midtrans Server Key and exact `gross_amount` cross-checking.
+- **Device Binding**: Keys bind to unique device IDs to prevent unauthorized sharing or piracy.
+- **Input Sanitization**: `appId`, `licenseKey`, and customer data are sanitized against path-traversal and injection attacks.
+
+---
+
+## 5. Payment Methods & Verification
+
+| Payment Method | Provider / Channel | Activation Speed | Instructions |
+|---|---|---|---|
+| **QRIS** | All Indonesian Banks & E-Wallets | Instant (< 3s) | Scan dynamic QR code via BCA, Mandiri, BRI, GoPay, OVO, DANA, ShopeePay |
+| **BCA Virtual Account** | Bank Central Asia | Instant | Transfer via BCA Mobile, KlikBCA, or BCA ATM |
+| **Mandiri Bill** | Bank Mandiri (eChannel) | Instant | Pay via Livin by Mandiri using Biller Code and Bill Key |
+| **BNI Virtual Account** | Bank Negara Indonesia | Instant | Transfer via BNI Mobile Banking or BNI ATM |
+| **BRI Virtual Account** | Bank Rakyat Indonesia | Instant | Pay via BRImo or BRI ATM using BRIVA number |
+| **Permata VA** | Bank Permata | Instant | Transfer via PermataNet, PermataMobile, or Prima/Bersama ATM |
+| **CIMB Niaga VA** | Bank CIMB Niaga | Instant | Pay via OCTO Mobile or CIMB Niaga ATM |
+| **GoPay / ShopeePay / DANA / OVO** | Direct E-Wallet | Instant | Auto-redirect or app deeplink confirmation |
+| **Indomaret / Alfamart** | Retail Outlets | Real-time | Show payment code to cashier |
+
+---
+
+## 6. Frequently Asked Questions (FAQ)
+
+### Q1: How do I receive my License Key after completing the payment?
+**Answer**: Your license key is presented immediately on the success page upon transaction confirmation and simultaneously sent to your registered email address along with the official PDF invoice.
+
+### Q2: Can I renew my software license before the current period expires?
+**Answer**: Yes. Navigate to [https://store.primadev.id/renew](https://store.primadev.id/renew), input your active License Key, and select your preferred renewal duration. The system will automatically add the new duration to your existing expiry date without resetting your app data.
+
+### Q3: What should I do if my License Key shows "Expired" or "Device Mismatch"?
+**Answer**: You can check your license status anytime at [https://store.primadev.id/check-license](https://store.primadev.id/check-license). If you changed your device or need assistance resetting device bindings, submit a ticket at [https://store.primadev.id/support](https://store.primadev.id/support) or message our WhatsApp helpline at +62 838-2952-0561.
+
+### Q4: Do I get an official invoice for company expense reports?
+**Answer**: Yes. An official electronic PDF invoice complete with corporate registration info, transaction ID, product breakdown, and license details is automatically generated for every transaction and can be accessed at `/api/invoice?id={order_or_license_id}`.
+
+---
+
+## 7. Developer & API Endpoints Summary
+
+- `GET /api/public_order`: Returns public catalog and portfolio list.
+- `POST /api/public_order`:
+  - `action: "create_transaction"`: Initiates new purchase.
+  - `action: "renew_transaction"`: Initiates license renewal.
+  - `action: "verify_payment"`: Checks payment settlement status and triggers fulfillment.
+  - `action: "cancel_transaction"`: Cancels uncompleted transactions.
+- `GET /api/licenses?id={key}`: Public license lookup by key.
+- `POST /api/validate-license`: In-app license check with device binding verification.
+- `GET /api/invoice?id={id}`: Generates downloadable A4 PDF invoice.
+- `POST /api/contact`: Submits customer support inquiries.
+- `POST /api/webhook`: Secure Midtrans notification handler.
+
+---
+
+© 2024–2026 PT Primadev Digital Technology. All rights reserved.
+Official Store: https://store.primadev.id | Corporate: https://primadev.id

@@ -1,0 +1,54 @@
+﻿# Primadev Store
+> Official digital license store by PT Primadev Digital Technology. Instant automated 24/7 license activation, business software, POS cashiers, automation tools, and customer support.
+
+## Overview
+Primadev Store (https://store.primadev.id) is the official platform operated by **PT Primadev Digital Technology** for purchasing genuine software licenses, managing license renewals, verifying license authenticity, and obtaining technical customer support.
+
+## Core Information
+- **Website**: https://store.primadev.id
+- **Main Portal**: https://primadev.id
+- **Company Name**: PT Primadev Digital Technology
+- **Legal Entity**: Perseroan Perorangan terdaftar di Kementerian Hukum dan HAM RI (Kemenkumham RI)
+- **Legal Certificate**: AHU-A104134.AH.01.30.Tahun 2026
+- **Headquarters**: Wangon, Kecamatan Wangon, Kabupaten Banyumas, Jawa Tengah 53176, Indonesia
+- **Official Email**: support.primadev@gmail.com / admin.primadev@gmail.com
+- **Official WhatsApp Support**: +62 838-2952-0561
+- **Operating Hours**: 24/7 Automated Activation, Support 1x24 business hours
+
+## Key Pages & Navigation
+- [Software Catalog & Home](https://store.primadev.id/): Browse official software products, pricing, and features.
+- [License Renewal](https://store.primadev.id/renew): Extend license validity without data loss or re-configuration.
+- [License Checker](https://store.primadev.id/check-license): Verify authenticity, registered owner, and expiry date.
+- [Customer Support](https://store.primadev.id/support): Technical assistance, activation help, and WhatsApp contact.
+
+## Featured Software Products
+1. **Struk SPBU Generator Android**
+   - *Platform*: Android
+   - *Category*: Business & Fuel Receipt Automation
+   - *Plans*: Monthly (Rp 80.000) & Yearly (Rp 860.000)
+   - *Description*: Automated digital receipt maker for gas stations (SPBU Pertamina, Shell, BP, etc.) with thermal Bluetooth printer support, custom templates, and instant calculations.
+
+2. **KasirQ POS (Point of Sale)**
+   - *Platform*: Android
+   - *Category*: Retail & POS Cashier System
+   - *Description*: Lightweight, fast cashier application for MSMEs, grocery stores, cafes, and retail shops with inventory control, barcode scanning, and multi-payment reporting.
+
+3. **WA Direct & Automation Blaster Pro**
+   - *Platform*: Android & Browser Extension
+   - *Category*: Marketing & Direct Messaging Automation
+   - *Description*: Direct WhatsApp messaging tool without saving contacts, scheduled follow-ups, and broadcast marketing automation.
+
+## Licensing & Activation Model
+- **Instant 24/7 Auto-Activation**: License keys are generated immediately upon verified payment and displayed on-screen and delivered via email.
+- **Device Binding**: Keys bind securely to authorized devices for fraud prevention.
+- **Seamless Renewal**: Renewing an existing license key accumulates remaining days with no service interruption or reinstallation required.
+- **Official PDF Invoice**: Tax-compliant digital PDF invoices are automatically generated and downloadable with every transaction.
+
+## Supported Payment Methods
+- **QRIS**: Instant payment via all Indonesian digital wallets (GoPay, OVO, DANA, ShopeePay, LinkAja) and Mobile Banking apps (BCA Mobile, Livin by Mandiri, BRImo, BNI Mobile, etc.).
+- **Virtual Accounts**: BCA, Mandiri (eChannel), BNI, BRI, Permata Bank, CIMB Niaga.
+- **E-Wallets**: GoPay, ShopeePay, DANA, OVO.
+- **Convenience Stores**: Alfamart, Indomaret.
+
+## Additional Documentation
+- [Full LLM Knowledge Base](https://store.primadev.id/llms-full.txt): Complete in-depth technical documentation, API architecture, full product feature list, licensing policies, and FAQs for AI agents and LLMs.
