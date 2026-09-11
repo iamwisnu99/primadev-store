@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/react";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -204,6 +205,7 @@ export default function RootLayout({ children }) {
             <Navbar />
             <main>{children}</main>
             <Footer />
+            <Analytics />
           </LanguageProvider>
         </ThemeProvider>
       </body>
