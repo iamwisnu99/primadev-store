@@ -566,6 +566,9 @@ html.light .hero-section {
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .card-screenshot-img {
@@ -576,6 +579,62 @@ html.light .hero-section {
 }
 .card-screenshot-container:hover .card-screenshot-img {
   transform: scale(1.05);
+}
+
+.card-screenshot-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: var(--color-surface-2);
+  text-align: center;
+  user-select: none;
+  border-radius: var(--radius-md);
+  box-sizing: border-box;
+}
+
+.fallback-android-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  color: #22c55e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+.card-screenshot-container:hover .fallback-android-icon {
+  transform: scale(1.08);
+}
+
+.fallback-android-text {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  max-width: 200px;
+}
+
+.modal-screenshot-fallback {
+  width: 100%;
+  height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  background: var(--color-surface-2);
+  text-align: center;
+  border-radius: 16px;
+  user-select: none;
+  box-sizing: border-box;
 }
 
 .card-screenshot-overlay {

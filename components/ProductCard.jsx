@@ -8,9 +8,22 @@ import { Check, ArrowRight, Sparkles, Eye } from "lucide-react";
 
 const SCREENSHOT_THUMB_MAP = {
   kasir_q: "/KasirQ/KasirQ.png",
-  "spbu-struk": "/struk-spbu/struk_app.png",
   whatsapp_direct: "/wa-direct/WhatsApp_Direct.png"
 };
+
+function AndroidFallbackIcon({ size = 30 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v6c0 .83.67 1.5 1.5 1.5S5 16.33 5 15.5v-6C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v6c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-6c0-.83-.67-1.5-1.5-1.5zm-4.97-4.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.62 2.24 12.83 2 12 2c-.83 0-1.62.24-2.64.63L7.88 1.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.3 1.3C6.71 4.38 5.5 6.04 5.5 8h13c0-1.96-1.21-3.62-2.97-4.84zM9 6.5c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm6 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z" />
+    </svg>
+  );
+}
 
 export default function ProductCard({ id, product, onOpenDetail }) {
   const { lang } = useLang();
@@ -23,6 +36,7 @@ export default function ProductCard({ id, product, onOpenDetail }) {
     : validPlans[0] || "monthly";
 
   const [selectedPlan, setSelectedPlan] = useState(initialPlan);
+  const [imageError, setImageError] = useState(false);
 
   const formatRupiah = (num) => {
     return new Intl.NumberFormat("id-ID", {
@@ -47,31 +61,42 @@ export default function ProductCard({ id, product, onOpenDetail }) {
     previewImage = product.customImage;
   }
 
+  const hasValidImage = previewImage && !imageError;
   const currentPrice = Number(prices[selectedPlan]) || 0;
 
   return (
     <div className="product-card">
-      {/* Screenshot / Visual Banner */}
-      {previewImage && (
-        <div
-          className="card-screenshot-container"
-          onClick={() => onOpenDetail && onOpenDetail(id, product)}
-          title="Klik untuk melihat detail dan screenshot lengkap"
-        >
+      {/* Screenshot / Visual Banner with Android Fallback */}
+      <div
+        className={`card-screenshot-container ${!hasValidImage ? "placeholder" : ""}`}
+        onClick={() => onOpenDetail && onOpenDetail(id, product)}
+        title="Klik untuk melihat detail dan screenshot lengkap"
+      >
+        {hasValidImage ? (
           <img
             src={previewImage}
             alt={product.name}
             className="card-screenshot-img"
             loading="lazy"
+            onError={() => setImageError(true)}
           />
-          <div className="card-screenshot-overlay">
-            <span className="card-screenshot-view-btn">
-              <Eye size={15} />
-              <span>Lihat Detail</span>
+        ) : (
+          <div className="card-screenshot-fallback">
+            <div className="fallback-android-icon">
+              <AndroidFallbackIcon size={28} />
+            </div>
+            <span className="fallback-android-text">
+              Gambar tidak tersedia untuk Aplikasi ini
             </span>
           </div>
+        )}
+        <div className="card-screenshot-overlay">
+          <span className="card-screenshot-view-btn">
+            <Eye size={15} />
+            <span>Lihat Detail</span>
+          </span>
         </div>
-      )}
+      </div>
 
       <div className="product-card-header">
         <h3

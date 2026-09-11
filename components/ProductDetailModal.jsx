@@ -14,45 +14,61 @@ const PRODUCT_SCREENSHOTS_MAP = {
     { src: "/KasirQ/Report_KasirQ.png", label: "Laporan Keuangan & Rekap Penjualan" },
     { src: "/KasirQ/Print_KasirQ.png", label: "Cetak Struk Printer Thermal Bluetooth" }
   ],
-  "spbu-struk": [
-    { src: "/struk-spbu/struk_app.png", label: "Dashboard & Generator Struk Digital" },
-    { src: "/struk-spbu/struk_app_1.png", label: "Katalog Template & Format SPBU BBM" },
-    { src: "/struk-spbu/struk_app_2.png", label: "Preview Cetak Struk Bluetooth Termal" }
-  ],
-  "struk-spbu": [
-    { src: "/struk-spbu/struk_app.png", label: "Dashboard & Generator Struk Digital" },
-    { src: "/struk-spbu/struk_app_1.png", label: "Katalog Template & Format SPBU BBM" },
-    { src: "/struk-spbu/struk_app_2.png", label: "Preview Cetak Struk Bluetooth Termal" }
-  ],
   whatsapp_direct: [
     { src: "/wa-direct/WhatsApp_Direct.png", label: "Tampilan Utama Chat Tanpa Simpan Nomor" },
     { src: "/wa-direct/WhatsApp_Direct_Country_Number.png", label: "Pilihan Kode Negara Internasional" },
-    { src: "/wa-direct/WhatsApp_Direct_QR_Code.png", label: "Fitur Scan QR WhatsApp Cepat" },
-    { src: "/wa-direct/WhatsApp_Direct_Languages.png", label: "Dukungan Bahasa Indonesia & Global" }
+    { src: "/wa-direct/WhatsApp_Direct_QR_Code.png", label: "Scan & Generate WhatsApp QR Code" },
+    { src: "/wa-direct/WhatsApp_Direct_Languages.png", label: "Dukungan Multi Bahasa Global" }
   ]
 };
+
+function AndroidFallbackIcon({ size = 36 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v6c0 .83.67 1.5 1.5 1.5S5 16.33 5 15.5v-6C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v6c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-6c0-.83-.67-1.5-1.5-1.5zm-4.97-4.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.62 2.24 12.83 2 12 2c-.83 0-1.62.24-2.64.63L7.88 1.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.3 1.3C6.71 4.38 5.5 6.04 5.5 8h13c0-1.96-1.21-3.62-2.97-4.84zM9 6.5c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm6 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z" />
+    </svg>
+  );
+}
 
 export default function ProductDetailModal({ id, product, onClose }) {
   const { lang } = useLang();
   const tr = t[lang].catalog;
 
-  const [mounted, setMounted] = useState(false);
-  const [activeScreenIdx, setActiveScreenIdx] = useState(0);
-
   const prices = product?.price || {};
   const validPlans = Object.keys(prices).filter((p) => Number(prices[p]) > 0);
-  const [selectedPlan, setSelectedPlan] = useState(
-    validPlans.includes("monthly") ? "monthly" : validPlans[0] || "monthly"
-  );
+  const initialPlan = validPlans.includes("monthly")
+    ? "monthly"
+    : validPlans[0] || "monthly";
 
-  const matchedScreenshots = PRODUCT_SCREENSHOTS_MAP[id] || PRODUCT_SCREENSHOTS_MAP["spbu-struk"];
+  const [selectedPlan, setSelectedPlan] = useState(initialPlan);
+  const [activeScreenIdx, setActiveScreenIdx] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const [mainImgError, setMainImgError] = useState(false);
 
-  const screenshots = (Array.isArray(product?.screenshots) && product.screenshots.length > 0)
-    ? product.screenshots
-    : matchedScreenshots;
+  // Screenshots array
+  let screenshots = PRODUCT_SCREENSHOTS_MAP[id] || [];
+  if (Array.isArray(product?.screenshots) && product.screenshots.length > 0) {
+    screenshots = product.screenshots.map((s, idx) => {
+      if (typeof s === "string") {
+        return { src: s, label: `Screenshot ${idx + 1}` };
+      }
+      return { src: s.src || s.url, label: s.label || `Screenshot ${idx + 1}` };
+    });
+  }
 
   useEffect(() => {
     setMounted(true);
+    setActiveScreenIdx(0);
+    setMainImgError(false);
+  }, [id, product]);
+
+  useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
     };
@@ -86,6 +102,7 @@ export default function ProductDetailModal({ id, product, onClose }) {
   ];
 
   const currentScreen = screenshots[activeScreenIdx] || screenshots[0];
+  const hasValidScreenshot = Boolean(currentScreen?.src) && !mainImgError;
 
   const modalContent = (
     <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
@@ -126,28 +143,47 @@ export default function ProductDetailModal({ id, product, onClose }) {
         <div className="modal-body-grid">
           {/* LEFT: GALLERY & DESCRIPTION */}
           <div className="modal-left-col">
-            {/* Main Screenshot Preview */}
+            {/* Main Screenshot Preview or Fallback */}
             <div className="modal-screenshot-main">
-              <img
-                src={currentScreen.src}
-                alt={currentScreen.label}
-                className="modal-main-img"
-                loading="eager"
-              />
-              <div className="modal-screenshot-caption">
-                {currentScreen.label}
-              </div>
+              {hasValidScreenshot ? (
+                <>
+                  <img
+                    src={currentScreen.src}
+                    alt={currentScreen.label || product.name}
+                    className="modal-main-img"
+                    loading="eager"
+                    onError={() => setMainImgError(true)}
+                  />
+                  {currentScreen.label && (
+                    <div className="modal-screenshot-caption">
+                      {currentScreen.label}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="modal-screenshot-fallback">
+                  <div className="fallback-android-icon" style={{ width: '56px', height: '56px', borderRadius: '16px' }}>
+                    <AndroidFallbackIcon size={34} />
+                  </div>
+                  <span className="fallback-android-text" style={{ fontSize: '13px', maxWidth: '260px', marginTop: '4px' }}>
+                    Gambar tidak tersedia untuk Aplikasi ini
+                  </span>
+                </div>
+              )}
             </div>
 
-            {/* Thumbnails strip */}
-            {screenshots.length > 1 && (
+            {/* Thumbnails strip (only if multiple valid screenshots) */}
+            {screenshots.length > 1 && !mainImgError && (
               <div className="modal-thumbs-row">
                 {screenshots.map((s, idx) => (
                   <button
                     key={idx}
                     type="button"
                     className={`modal-thumb-btn ${activeScreenIdx === idx ? "active" : ""}`}
-                    onClick={() => setActiveScreenIdx(idx)}
+                    onClick={() => {
+                      setActiveScreenIdx(idx);
+                      setMainImgError(false);
+                    }}
                     aria-label={s.label}
                   >
                     <img src={s.src} alt={s.label} className="modal-thumb-img" />
