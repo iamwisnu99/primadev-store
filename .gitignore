@@ -60,3 +60,4 @@ coverage/
 *.pem
 .vercel
 .cache/
+.vercel
