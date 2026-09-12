@@ -67,11 +67,15 @@ async function chargeMidtrans(payload) {
     ? 'https://api.midtrans.com/v2/charge'
     : 'https://api.sandbox.midtrans.com/v2/charge';
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://store.primadev.id";
+  const webhookUrl = `${siteUrl}/api/webhook`;
+
   const authHeader = 'Basic ' + Buffer.from(MIDTRANS_SERVER_KEY + ':').toString('base64');
   const headers = {
     'Authorization': authHeader,
     'Content-Type': 'application/json',
-    'Accept': 'application/json'
+    'Accept': 'application/json',
+    'X-Override-Notification': webhookUrl
   };
 
   const { orderId, grossAmount, buyerName, buyerEmail, buyerPhone, paymentMethod, productName, appId, finishUrl } = payload;
