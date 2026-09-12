@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
-import { join } from 'path';
-import { existsSync } from 'fs';
 import { getDb } from '@/lib/firebaseAdmin';
 import { getPremiumTemplate, getRenewalTemplate } from '@/lib/emailTemplate';
 
@@ -25,17 +23,12 @@ function generateLicenseKey() {
 async function sendEmailDelivery(data, isRenewal = false) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
 
-  const logoPath = join(process.cwd(), 'public', 'primadev_light.png');
-  const hasLogo = existsSync(logoPath);
-  const attachments = hasLogo ? [{
-    filename: 'primadev_light.png',
-    path: logoPath,
-    cid: 'primadev_light_logo'
-  }] : [];
-
+  const licenseKey = data.key || data.licenseKey || data.targetLicenseKey || '';
   const templateData = {
     ...data,
-    logoUrl: hasLogo ? 'cid:primadev_light_logo' : undefined
+    key: licenseKey,
+    licenseKey,
+    logoUrl: 'https://store.primadev.id/primadev_light.png'
   };
 
   const html = isRenewal ? getRenewalTemplate(templateData) : getPremiumTemplate(templateData);
@@ -48,8 +41,7 @@ async function sendEmailDelivery(data, isRenewal = false) {
       from: `"Primadev Digital Technology" <${process.env.EMAIL_USER}>`,
       to: data.email,
       subject,
-      html,
-      attachments
+      html
     });
   } catch (err) {
     console.error("[EMAIL ERROR]:", err.message);

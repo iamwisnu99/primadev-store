@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
-import { join } from "path";
-import { existsSync } from "fs";
 
 export async function POST(req) {
   try {
@@ -41,22 +39,13 @@ export async function POST(req) {
     };
     const topicLabel = topicLabels[topic] || topic || "Bantuan Umum";
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://store.primadev.id";
-    const logoPath = join(process.cwd(), 'public', 'primadev_light.png');
-    const hasLogo = existsSync(logoPath);
-    const logoUrl = hasLogo ? 'cid:primadev_light_logo' : `${siteUrl}/primadev_light.png`;
-    const attachments = hasLogo ? [{
-      filename: 'primadev_light.png',
-      path: logoPath,
-      cid: 'primadev_light_logo'
-    }] : [];
+    const logoUrl = "https://store.primadev.id/primadev_light.png";
 
     // 1. Email to Customer (Confirmation)
     const userMailOptions = {
       from: `"Primadev Support" <${emailUser}>`,
       to: email,
       subject: "Konfirmasi Tiket Bantuan - Primadev Store",
-      attachments,
       html: `
 <!DOCTYPE html>
 <html lang="id">
