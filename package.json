@@ -8,6 +8,11 @@
     "start": "next start -p 3001",
     "lint": "eslint"
   },
+  "allowScripts": {
+    "@firebase/util": true,
+    "protobufjs": true,
+    "unrs-resolver": true
+  },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
     "firebase-admin": "^13.2.0",
