@@ -64,7 +64,7 @@ function CountdownTimer({ initialSeconds = 86400 }) {
 export default function WaitingPaymentClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const orderId = searchParams.get('orderId');
+  const orderId = searchParams.get('orderId') || searchParams.get('order_id') || (typeof window !== 'undefined' ? sessionStorage.getItem('primadev_last_order_id') : null);
 
   const [chargeData, setChargeData] = useState(null);
   const [checking, setChecking] = useState(false);
@@ -114,7 +114,10 @@ export default function WaitingPaymentClient() {
       if (data.isSuccess || data.status === 'success') {
         if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
         sessionStorage.removeItem('primadev_last_charge');
-        router.push(`/thankyou?orderId=${orderId}&key=${data.key || ''}`);
+        const resolvedKey = data.key || '';
+        if (orderId) sessionStorage.setItem('primadev_last_order_id', orderId);
+        if (resolvedKey) sessionStorage.setItem('primadev_last_license_key', resolvedKey);
+        router.push(`/thankyou?orderId=${encodeURIComponent(orderId)}${resolvedKey ? `&key=${encodeURIComponent(resolvedKey)}` : ''}`);
         return;
       }
 

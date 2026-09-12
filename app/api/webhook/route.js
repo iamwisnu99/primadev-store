@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import { join } from 'path';
+import { existsSync } from 'fs';
 import { getDb } from '@/lib/firebaseAdmin';
 import { getPremiumTemplate, getRenewalTemplate } from '@/lib/emailTemplate';
 
@@ -18,6 +20,40 @@ function generateLicenseKey() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   const seg = () => Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
   return `PRIMA-${seg()}-${seg()}-${seg()}`;
+}
+
+async function sendEmailDelivery(data, isRenewal = false) {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+
+  const logoPath = join(process.cwd(), 'public', 'primadev_light.png');
+  const hasLogo = existsSync(logoPath);
+  const attachments = hasLogo ? [{
+    filename: 'primadev_light.png',
+    path: logoPath,
+    cid: 'primadev_light_logo'
+  }] : [];
+
+  const templateData = {
+    ...data,
+    logoUrl: hasLogo ? 'cid:primadev_light_logo' : undefined
+  };
+
+  const html = isRenewal ? getRenewalTemplate(templateData) : getPremiumTemplate(templateData);
+  const subject = isRenewal
+    ? `Perpanjangan Lisensi ${data.appName} Berhasil`
+    : `Pesanan Selesai: Lisensi ${data.appName} (${(data.type || '').toUpperCase()})`;
+
+  try {
+    await transporter.sendMail({
+      from: `"Primadev Digital Technology" <${process.env.EMAIL_USER}>`,
+      to: data.email,
+      subject,
+      html,
+      attachments
+    });
+  } catch (err) {
+    console.error("[EMAIL ERROR]:", err.message);
+  }
 }
 
 export async function POST(req) {
@@ -143,23 +179,15 @@ export async function POST(req) {
           updatedAt: Date.now()
         });
 
-        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-          try {
-            await transporter.sendMail({
-              from: `"Primadev Digital Technology" <${process.env.EMAIL_USER}>`,
-              to: currentData.email || trx.customerEmail,
-              subject: `Perpanjangan Lisensi ${currentData.appName} Berhasil`,
-              html: getRenewalTemplate({
-                name: currentData.name,
-                key: targetKey,
-                appName: currentData.appName,
-                type: trx.duration,
-                expiryDate: expiryString,
-                transactionId: order_id
-              })
-            });
-          } catch (e) {}
-        }
+        await sendEmailDelivery({
+          name: currentData.name,
+          email: currentData.email || trx.customerEmail,
+          key: targetKey,
+          appName: currentData.appName,
+          type: trx.duration,
+          expiryDate: expiryString,
+          transactionId: order_id
+        }, true);
 
         return NextResponse.json({ status: "OK", key: targetKey });
       }
@@ -197,16 +225,7 @@ export async function POST(req) {
       updatedAt: Date.now()
     });
 
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-      try {
-        await transporter.sendMail({
-          from: `"Primadev Digital Technology" <${process.env.EMAIL_USER}>`,
-          to: newLicense.email,
-          subject: `Pesanan Selesai: Lisensi ${newLicense.appName} (${(newLicense.type || '').toUpperCase()})`,
-          html: getPremiumTemplate(newLicense)
-        });
-      } catch (e) {}
-    }
+    await sendEmailDelivery(newLicense, false);
 
     return NextResponse.json({ status: "OK", key: newKey });
   } catch (error) {

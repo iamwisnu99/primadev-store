@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { join } from "path";
+import { existsSync } from "fs";
 
 export async function POST(req) {
   try {
@@ -39,13 +41,22 @@ export async function POST(req) {
     };
     const topicLabel = topicLabels[topic] || topic || "Bantuan Umum";
 
-    const logoUrl = "https://i.imgur.com/BZ1xLO3.png";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://store.primadev.id";
+    const logoPath = join(process.cwd(), 'public', 'primadev_light.png');
+    const hasLogo = existsSync(logoPath);
+    const logoUrl = hasLogo ? 'cid:primadev_light_logo' : `${siteUrl}/primadev_light.png`;
+    const attachments = hasLogo ? [{
+      filename: 'primadev_light.png',
+      path: logoPath,
+      cid: 'primadev_light_logo'
+    }] : [];
 
     // 1. Email to Customer (Confirmation)
     const userMailOptions = {
       from: `"Primadev Support" <${emailUser}>`,
       to: email,
       subject: "Konfirmasi Tiket Bantuan - Primadev Store",
+      attachments,
       html: `
 <!DOCTYPE html>
 <html lang="id">
@@ -60,7 +71,7 @@ export async function POST(req) {
         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width:600px;background-color:#070d17;border:1px solid rgba(255,255,255,0.1);border-radius:16px;overflow:hidden;">
           <tr>
             <td style="padding:32px 24px 20px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.08);">
-              <img src="${logoUrl}" alt="Primadev" width="140" style="display:inline-block;margin-bottom:12px;" />
+              <img src="${logoUrl}" alt="Primadev Digital Technology" width="160" style="display:inline-block;margin-bottom:12px;max-width:160px;height:auto;border:0;outline:none;text-decoration:none;" />
               <h2 style="color:#ffffff;font-size:20px;margin:0;">Pesan Bantuan Anda Telah Kami Terima</h2>
             </td>
           </tr>

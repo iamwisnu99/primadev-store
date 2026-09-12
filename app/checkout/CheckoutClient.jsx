@@ -162,6 +162,9 @@ export default function CheckoutClient() {
       }
 
       sessionStorage.setItem('primadev_last_charge', JSON.stringify(data));
+      if (data.order_id) {
+        sessionStorage.setItem('primadev_last_order_id', data.order_id);
+      }
       router.push(`/waiting-payment?orderId=${data.order_id}`);
     } catch (err) {
       setErrorMsg(err.message);

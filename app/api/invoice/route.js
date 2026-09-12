@@ -6,41 +6,82 @@ import { readFileSync } from 'fs';
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
-  const id = searchParams.get('id');
+  const rawId = searchParams.get('id') || searchParams.get('orderId') || searchParams.get('order_id') || searchParams.get('key') || searchParams.get('licenseKey');
+  const id = (rawId || '').trim();
 
-  if (!id) {
-    return new NextResponse("ID Lisensi / Transaksi wajib disertakan", { status: 400 });
+  if (!id || id === 'PRIMA-XXXX-XXXX-XXXX') {
+    return new NextResponse("ID Lisensi / Transaksi tidak valid", {
+      status: 400,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+    });
   }
 
   const db = getDb();
   if (!db) {
-    return new NextResponse("Database tidak tersedia", { status: 500 });
+    return new NextResponse("Database tidak tersedia", {
+      status: 500,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+    });
   }
 
   try {
     let license = null;
+
+    // 1. Direct lookup in licenses by key
     const licSnap = await db.ref(`licenses/${id}`).once('value');
     if (licSnap.exists()) {
       license = licSnap.val();
     } else {
+      // 2. Lookup in transactions by orderId
       const trxSnap = await db.ref(`transactions/${id}`).once('value');
       if (trxSnap.exists()) {
         const trx = trxSnap.val();
-        license = {
-          key: trx.licenseKey || trx.targetLicenseKey || id,
-          appName: trx.appName,
-          name: trx.customerName,
-          email: trx.customerEmail,
-          type: trx.duration,
-          price: trx.amount,
-          transactionId: trx.orderId,
-          expiryDate: 'Tercatat di sistem'
-        };
+        let targetKey = trx.licenseKey || trx.targetLicenseKey;
+
+        // Try to fetch full license record if key is known
+        if (targetKey) {
+          const licSnap2 = await db.ref(`licenses/${targetKey}`).once('value');
+          if (licSnap2.exists()) {
+            license = { ...trx, ...licSnap2.val() };
+          }
+        }
+
+        // If license still not resolved, query licenses by transactionId
+        if (!license) {
+          const licByTrx = await db.ref('licenses').orderByChild('transactionId').equalTo(trx.orderId || id).once('value');
+          if (licByTrx.exists()) {
+            const first = Object.values(licByTrx.val())[0];
+            license = { ...trx, ...first };
+          }
+        }
+
+        // If still no license record, construct from transaction record
+        if (!license) {
+          license = {
+            key: targetKey || id,
+            appName: trx.appName || 'Lisensi Software',
+            name: trx.customerName || 'Pelanggan',
+            email: trx.customerEmail || '-',
+            type: trx.duration || 'monthly',
+            price: trx.amount || 0,
+            transactionId: trx.orderId || id,
+            expiryDate: 'Tercatat di sistem'
+          };
+        }
+      } else {
+        // 3. Fallback: query licenses where transactionId === id
+        const licByTrx = await db.ref('licenses').orderByChild('transactionId').equalTo(id).once('value');
+        if (licByTrx.exists()) {
+          license = Object.values(licByTrx.val())[0];
+        }
       }
     }
 
     if (!license) {
-      return new NextResponse("Data Invoice tidak ditemukan", { status: 404 });
+      return new NextResponse("Data Invoice tidak ditemukan", {
+        status: 404,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+      });
     }
 
     const pdfDoc = await PDFDocument.create();
@@ -279,16 +320,24 @@ export async function GET(req) {
     });
 
     const pdfBytes = await pdfDoc.save();
+    const pdfBuffer = Buffer.from(pdfBytes);
+    const safeFilename = String(license.key || id).replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 25);
 
-    return new NextResponse(pdfBytes, {
+    return new NextResponse(pdfBuffer, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="Invoice-${(license.key || id).substring(0, 15)}.pdf"`
+        'Content-Length': String(pdfBuffer.length),
+        'Content-Disposition': `inline; filename="Invoice-${safeFilename}.pdf"`,
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate'
       }
     });
   } catch (err) {
     console.error("[INVOICE GENERATION ERROR]:", err);
-    return new NextResponse(err.message || "Gagal membuat invoice", { status: 500 });
+    return new NextResponse(err.message || "Gagal membuat invoice", {
+      status: 500,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+    });
   }
 }
+

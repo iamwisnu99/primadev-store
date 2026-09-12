@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import { join } from 'path';
+import { existsSync } from 'fs';
 import { getDb } from '@/lib/firebaseAdmin';
 import { getPremiumTemplate, getRenewalTemplate } from '@/lib/emailTemplate';
 
@@ -32,7 +34,21 @@ function generateLicenseKey() {
 
 async function sendEmailDelivery(data, isRenewal = false) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
-  const html = isRenewal ? getRenewalTemplate(data) : getPremiumTemplate(data);
+
+  const logoPath = join(process.cwd(), 'public', 'primadev_light.png');
+  const hasLogo = existsSync(logoPath);
+  const attachments = hasLogo ? [{
+    filename: 'primadev_light.png',
+    path: logoPath,
+    cid: 'primadev_light_logo'
+  }] : [];
+
+  const templateData = {
+    ...data,
+    logoUrl: hasLogo ? 'cid:primadev_light_logo' : undefined
+  };
+
+  const html = isRenewal ? getRenewalTemplate(templateData) : getPremiumTemplate(templateData);
   const subject = isRenewal
     ? `Perpanjangan Lisensi ${data.appName} Berhasil`
     : `Pesanan Selesai: Lisensi ${data.appName} (${(data.type || '').toUpperCase()})`;
@@ -42,7 +58,8 @@ async function sendEmailDelivery(data, isRenewal = false) {
       from: `"Primadev Digital Technology" <${process.env.EMAIL_USER}>`,
       to: data.email,
       subject,
-      html
+      html,
+      attachments
     });
   } catch (err) {
     console.error("[EMAIL ERROR]:", err.message);
@@ -322,7 +339,7 @@ export async function POST(req) {
     const body = await req.json();
     const { action } = body;
     const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'https://store.primadev.id';
-    const finishUrl = `${origin}/waiting-payment`;
+    const getFinishUrl = (oid) => `${origin}/waiting-payment?orderId=${encodeURIComponent(oid)}`;
 
     // 1. CREATE TRANSACTION (Strict server-side validation against Firebase)
     if (action === 'create_transaction') {
@@ -372,7 +389,7 @@ export async function POST(req) {
         paymentMethod: paymentMethod.toLowerCase(),
         productName: product.name,
         appId,
-        finishUrl
+        finishUrl: getFinishUrl(orderId)
       });
 
       // Save initial transaction state
@@ -383,8 +400,9 @@ export async function POST(req) {
         customerName: buyerName.trim(),
         customerEmail: buyerEmail.trim().toLowerCase(),
         customerPhone: (buyerPhone || '').trim(),
+        productName: product.name,
+        appName: product.name,
         appId,
-        appName: product.name || appId,
         duration,
         orderType: 'NEW',
         paymentMethod: paymentMethod.toLowerCase(),
@@ -395,15 +413,15 @@ export async function POST(req) {
       return NextResponse.json(chargeRes);
     }
 
-    // 2. RENEW TRANSACTION
+    // 2. RENEW TRANSACTION (Strict validation & strict Firebase price lookup)
     if (action === 'renew_transaction') {
       const { licenseKey, duration, buyerName, buyerEmail, buyerPhone, paymentMethod } = body;
 
-      if (!licenseKey || typeof licenseKey !== 'string' || licenseKey.trim().length < 5 || licenseKey.trim().length > 30) {
-        return NextResponse.json({ error: "License key tidak valid" }, { status: 400 });
+      if (!licenseKey || typeof licenseKey !== 'string') {
+        return NextResponse.json({ error: "License Key wajib disertakan" }, { status: 400 });
       }
-      if (!['monthly', 'yearly', 'lifetime'].includes(duration)) {
-        return NextResponse.json({ error: "Durasi tidak valid" }, { status: 400 });
+      if (!['monthly', 'yearly'].includes(duration)) {
+        return NextResponse.json({ error: "Durasi perpanjangan tidak valid" }, { status: 400 });
       }
       if (!paymentMethod || !ALLOWED_PAYMENT_METHODS.has(paymentMethod.toLowerCase())) {
         return NextResponse.json({ error: "Metode pembayaran tidak valid" }, { status: 400 });
@@ -452,7 +470,7 @@ export async function POST(req) {
         paymentMethod: paymentMethod.toLowerCase(),
         productName: `Perpanjangan ${appName}`,
         appId,
-        finishUrl
+        finishUrl: getFinishUrl(orderId)
       });
 
       await db.ref(`transactions/${orderId}`).set({
@@ -491,9 +509,59 @@ export async function POST(req) {
 
       // ── Idempotency: already fulfilled ─────────────────────────────────────
       if (trx.status === 'success') {
+        let key = trx.licenseKey || trx.targetLicenseKey || null;
+
+        // If transaction status is success but key was not attached, find from licenses by transactionId
+        if (!key) {
+          try {
+            const licSnap = await db.ref('licenses').orderByChild('transactionId').equalTo(orderId).once('value');
+            if (licSnap.exists()) {
+              const firstLic = Object.values(licSnap.val())[0];
+              if (firstLic && firstLic.key) {
+                key = firstLic.key;
+                await db.ref(`transactions/${orderId}`).update({ licenseKey: key });
+              }
+            }
+          } catch (err) {
+            console.error("[VERIFY LICENSE BACKFILL ERROR]:", err);
+          }
+        }
+
+        // If STILL no key and it's marked success, generate and save the license now
+        if (!key && trx.orderType !== 'RENEWAL') {
+          const newKey = generateLicenseKey();
+          const expiry = new Date();
+          if (trx.duration === 'monthly') expiry.setMonth(expiry.getMonth() + 1);
+          else if (trx.duration === 'yearly') expiry.setFullYear(expiry.getFullYear() + 1);
+          else expiry.setFullYear(expiry.getFullYear() + 100);
+
+          const expiryString = expiry.toISOString().split('T')[0];
+          const newLicense = {
+            key: newKey,
+            status: 'active',
+            type: trx.duration || 'monthly',
+            appName: trx.appName || 'Aplikasi',
+            appId: trx.appId || '',
+            price: trx.amount || 0,
+            name: trx.customerName || 'Pelanggan',
+            email: trx.customerEmail || '',
+            phone: trx.customerPhone || '',
+            expiryDate: expiryString,
+            paymentMethod: trx.paymentMethod || 'Midtrans',
+            transactionId: orderId,
+            createdAt: Date.now()
+          };
+          await db.ref(`licenses/${newKey}`).set(newLicense);
+          await db.ref(`transactions/${orderId}`).update({
+            licenseKey: newKey,
+            updatedAt: Date.now()
+          });
+          key = newKey;
+        }
+
         return NextResponse.json({
           status: 'success',
-          key: trx.licenseKey || trx.targetLicenseKey || null,
+          key: key || trx.targetLicenseKey || null,
           isSuccess: true
         });
       }
@@ -570,9 +638,24 @@ export async function POST(req) {
         const freshSnap = await db.ref(`transactions/${orderId}`).once('value');
         const freshTrx = freshSnap.val();
         if (freshTrx?.status === 'success') {
+          let key = freshTrx.licenseKey || freshTrx.targetLicenseKey || null;
+          if (!key) {
+            try {
+              const licSnap = await db.ref('licenses').orderByChild('transactionId').equalTo(orderId).once('value');
+              if (licSnap.exists()) {
+                const firstLic = Object.values(licSnap.val())[0];
+                if (firstLic && firstLic.key) {
+                  key = firstLic.key;
+                  await db.ref(`transactions/${orderId}`).update({ licenseKey: key });
+                }
+              }
+            } catch (err) {
+              console.error("[ALREADY_PROCESSED KEY LOOKUP ERROR]:", err);
+            }
+          }
           return NextResponse.json({
             status: 'success',
-            key: freshTrx.licenseKey || freshTrx.targetLicenseKey || null,
+            key: key || freshTrx.targetLicenseKey || null,
             isSuccess: true
           });
         }

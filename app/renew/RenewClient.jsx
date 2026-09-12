@@ -67,6 +67,12 @@ export default function RenewPage() {
       }
 
       sessionStorage.setItem('primadev_last_charge', JSON.stringify(data));
+      if (data.order_id) {
+        sessionStorage.setItem('primadev_last_order_id', data.order_id);
+      }
+      if (licenseKey.trim()) {
+        sessionStorage.setItem('primadev_last_license_key', licenseKey.trim());
+      }
       router.push(`/waiting-payment?orderId=${data.order_id}`);
     } catch (err) {
       setActionError(err.message);
