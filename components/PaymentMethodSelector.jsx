@@ -66,13 +66,13 @@ const PAYMENT_GROUPS = [
         id: "gopay",
         name: "GoPay",
         tag: "Deeplink / QR",
-        logo: "https://upload.wikimedia.org/wikipedia/commons/8/86/Gopay_logo.svg"
+        logo: "https://upload.wikimedia.org/wikipedia/commons/b/b1/GoPay_logo.svg"
       },
       {
         id: "shopeepay",
         name: "ShopeePay",
         tag: "Deeplink Shopee App",
-        logo: "https://upload.wikimedia.org/wikipedia/commons/0/0e/ShopeePay.svg"
+        logo: "https://play-lh.googleusercontent.com/TwrKtwhbq3qgO8ydyTYEmY-eNsjgZ4WODS-MrheYWext4EHon7u5ZuDLrm826tG6Wk6pL40j3hkiDHdmAXrt=w240-h480-rw"
       },
       {
         id: "dana",

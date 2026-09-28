@@ -47,6 +47,7 @@ export default function CheckoutClient() {
   const [paymentMethod, setPaymentMethod] = useState("qris");
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Product Icon resolution with fallback (ignore fontawesome strings like 'fa-box')
   const isCustomIconUrl = product?.icon && (product.icon.startsWith('/') || product.icon.startsWith('http'));
@@ -137,6 +138,11 @@ export default function CheckoutClient() {
 
     if (!buyerEmail.trim() || !buyerEmail.includes('@')) {
       setErrorMsg("Format email tidak valid. Pastikan email Anda aktif.");
+      return;
+    }
+
+    if (!agreedToTerms) {
+      setErrorMsg("Anda harus menyetujui Perjanjian License Key untuk melanjutkan pembelian.");
       return;
     }
 
@@ -254,6 +260,60 @@ export default function CheckoutClient() {
                   <span className="input-hint" style={{ marginTop: '6px', display: 'block' }}>
                     Pastikan email Anda aktif dan benar untuk menerima kode lisensi dan invoice PDF.
                   </span>
+                </div>
+
+                <div 
+                  className="agreement-checkbox-wrapper" 
+                  style={{ 
+                    paddingTop: '16px', 
+                    borderTop: '1px solid var(--color-border)', 
+                    marginTop: '16px' 
+                  }}
+                >
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '12px',
+                      cursor: 'pointer',
+                      fontSize: '13.5px',
+                      lineHeight: '1.5',
+                      color: 'var(--color-text-secondary)',
+                      userSelect: 'none'
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      id="agreementCheckbox"
+                      required
+                      checked={agreedToTerms}
+                      onChange={(e) => setAgreedToTerms(e.target.checked)}
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        marginTop: '2px',
+                        accentColor: 'var(--color-primary, #036efd)',
+                        cursor: 'pointer',
+                        flexShrink: 0
+                      }}
+                    />
+                    <span>
+                      Dengan membeli Lisensi Key ini, Anda menyatakan setuju dengan{' '}
+                      <a
+                        href="https://primadev.id/perjanjian-lisensi"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          color: 'var(--color-primary, #036efd)',
+                          fontWeight: 600,
+                          textDecoration: 'underline'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Perjanjian License Key.
+                      </a>
+                    </span>
+                  </label>
                 </div>
               </div>
 
