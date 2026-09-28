@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import {
   Copy,
   CheckCircle,
@@ -70,6 +71,34 @@ export default function WaitingPaymentClient() {
   const [checking, setChecking] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock background scroll when cancel modal is open
+  useEffect(() => {
+    if (showCancelModal) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [showCancelModal]);
+
+  // Close modal on Escape key
+  useEffect(() => {
+    if (!showCancelModal) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && !cancelling) {
+        setShowCancelModal(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showCancelModal, cancelling]);
   const [isCancelled, setIsCancelled] = useState(false);
 
   const [showToast, setShowToast] = useState(false);
@@ -551,67 +580,78 @@ export default function WaitingPaymentClient() {
       </div>
 
       {/* CONFIRMATION CANCEL MODAL */}
-      {showCancelModal && (
+      {mounted && showCancelModal && createPortal(
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="cancel-modal-title"
           style={{
             position: 'fixed',
             top: 0,
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0, 0, 0, 0.75)',
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0, 0, 0, 0.78)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
             zIndex: 999999,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '20px'
+            padding: '20px',
+            margin: 0,
+            boxSizing: 'border-box'
           }}
           onClick={() => !cancelling && setShowCancelModal(false)}
         >
           <div
             style={{
-              background: 'var(--color-surface)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '18px',
-              maxWidth: '440px',
+              background: 'var(--color-surface, #0f172a)',
+              border: '1px solid var(--color-border, rgba(255, 255, 255, 0.12))',
+              borderRadius: '20px',
+              maxWidth: '460px',
               width: '100%',
-              padding: '28px',
+              padding: '32px 28px',
               textAlign: 'center',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
+              boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.75)',
+              animation: 'modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{
-              width: '56px',
-              height: '56px',
+              width: '60px',
+              height: '60px',
               borderRadius: '50%',
               background: 'rgba(239, 68, 68, 0.12)',
               border: '1px solid rgba(239, 68, 68, 0.3)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 16px',
+              margin: '0 auto 18px',
               color: '#ef4444'
             }}>
-              <AlertTriangle size={28} />
+              <AlertTriangle size={30} />
             </div>
 
-            <h3 style={{ fontSize: '19px', fontWeight: 800, marginBottom: '8px', color: 'var(--color-text)' }}>
+            <h3
+              id="cancel-modal-title"
+              style={{ fontSize: '20px', fontWeight: 800, marginBottom: '10px', color: 'var(--color-text, #ffffff)' }}
+            >
               Batalkan Transaksi?
             </h3>
-            <p style={{ color: 'var(--color-text-secondary)', fontSize: '13.5px', lineHeight: 1.5, marginBottom: '24px' }}>
-              Pesanan <strong style={{ fontFamily: 'monospace', color: 'var(--color-text)' }}>{orderId}</strong> akan dibatalkan secara permanen di sistem dan status pada Midtrans Gateway akan tercatat <strong>Cancelled</strong>.
+            <p style={{ color: 'var(--color-text-secondary, #94a3b8)', fontSize: '14px', lineHeight: 1.6, marginBottom: '28px' }}>
+              Pesanan <strong style={{ fontFamily: 'monospace', color: 'var(--color-text, #ffffff)' }}>{orderId}</strong> akan dibatalkan secara permanen di sistem dan status pada Midtrans Gateway akan tercatat <strong>Cancelled</strong>.
             </p>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '12px' }}>
               <button
                 type="button"
                 className="btn-secondary"
                 onClick={() => setShowCancelModal(false)}
                 disabled={cancelling}
-                style={{ flex: 1, padding: '12px', justifyContent: 'center' }}
+                style={{ flex: 1, padding: '12px 18px', justifyContent: 'center', fontSize: '14px', fontWeight: 600 }}
               >
                 Kembali
               </button>
@@ -620,19 +660,22 @@ export default function WaitingPaymentClient() {
                 onClick={handleCancelOrder}
                 disabled={cancelling}
                 style={{
-                  flex: 1.2,
-                  padding: '12px',
+                  flex: 1.3,
+                  padding: '12px 18px',
                   borderRadius: '10px',
                   background: '#ef4444',
                   color: '#ffffff',
                   border: 'none',
                   fontWeight: 700,
                   fontSize: '14px',
-                  cursor: 'pointer',
+                  cursor: cancelling ? 'not-allowed' : 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '6px'
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.35)',
+                  transition: 'all 0.2s ease',
+                  opacity: cancelling ? 0.7 : 1
                 }}
               >
                 {cancelling ? (
@@ -649,10 +692,11 @@ export default function WaitingPaymentClient() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      <Toast message={toastMsg} show={showToast} onClose={() => setShowToast(false)} />
+            <Toast message={toastMsg} show={showToast} onClose={() => setShowToast(false)} />
     </div>
   );
 }

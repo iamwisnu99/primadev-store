@@ -1473,13 +1473,12 @@ html.light .footer-legal-ahu-row:hover .kemenkumham-ahu-img {
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
 .page-transition-wrapper {
   animation: pageEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  will-change: transform, opacity;
 }
 
 /* PAYMENT ACCORDION SELECTOR */
@@ -2702,4 +2701,16 @@ html.light .shake-checkbox {
   background: #fffbeb !important;
   border-color: #d97706 !important;
   box-shadow: 0 0 0 1px #d97706, 0 0 12px rgba(217, 119, 6, 0.15);
+}
+
+
+@keyframes modalPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
