@@ -2665,3 +2665,41 @@ html.light .timer-pill {
   border: 1px solid #bfdbfe;
   color: #036EFD;
 }
+
+
+/* ==========================================================================
+   TOAST & CHECKBOX SHAKE ANIMATIONS
+   ========================================================================== */
+@keyframes toastSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shakeX {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.shake-checkbox {
+  animation: shakeX 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  border-color: #f59e0b !important;
+  background: rgba(245, 158, 11, 0.08) !important;
+  border-radius: 10px;
+  padding: 12px !important;
+  box-shadow: 0 0 0 1px #f59e0b, 0 0 12px rgba(245, 158, 11, 0.2);
+  transition: all 0.3s ease;
+}
+
+[data-theme="light"] .shake-checkbox,
+html.light .shake-checkbox {
+  background: #fffbeb !important;
+  border-color: #d97706 !important;
+  box-shadow: 0 0 0 1px #d97706, 0 0 12px rgba(217, 119, 6, 0.15);
+}

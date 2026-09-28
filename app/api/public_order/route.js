@@ -339,7 +339,15 @@ export async function POST(req) {
 
     // 1. CREATE TRANSACTION (Strict server-side validation against Firebase)
     if (action === 'create_transaction') {
-      const { appId, duration, buyerName, buyerEmail, buyerPhone, paymentMethod } = body;
+      const { appId, duration, buyerName, buyerEmail, buyerPhone, paymentMethod, agreedToTerms } = body;
+
+      // ─── Mandatory Agreement Validation (Anti-tamper protection) ─────────
+      if (agreedToTerms !== true && agreedToTerms !== 'true') {
+        return NextResponse.json(
+          { error: "Anda wajib menyetujui Perjanjian License Key untuk melanjutkan transaksi." },
+          { status: 400 }
+        );
+      }
 
       // ── Input Validation ──────────────────────────────────────────────────
       if (!appId || typeof appId !== 'string' || !SAFE_APP_ID_RE.test(appId)) {
@@ -403,6 +411,8 @@ export async function POST(req) {
         orderType: 'NEW',
         paymentMethod: paymentMethod.toLowerCase(),
         gateway: 'midtrans',
+        agreedToTerms: true,
+        agreedAt: Date.now(),
         createdAt: Date.now()
       });
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
+import Toast from "@/components/Toast";
 import {
   Lock,
   AlertCircle,
@@ -48,6 +49,10 @@ export default function CheckoutClient() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [toastMsg, setToastMsg] = useState("");
+  const [toastType, setToastType] = useState("warning");
+  const [showToast, setShowToast] = useState(false);
+  const [shakeCheckbox, setShakeCheckbox] = useState(false);
 
   // Product Icon resolution with fallback (ignore fontawesome strings like 'fa-box')
   const isCustomIconUrl = product?.icon && (product.icon.startsWith('/') || product.icon.startsWith('http'));
@@ -132,17 +137,36 @@ export default function CheckoutClient() {
     setErrorMsg("");
 
     if (!buyerName.trim()) {
-      setErrorMsg("Nama Lengkap wajib diisi.");
+      const msg = "Nama Lengkap wajib diisi.";
+      setErrorMsg(msg);
+      setToastMsg(msg);
+      setToastType("warning");
+      setShowToast(true);
       return;
     }
 
     if (!buyerEmail.trim() || !buyerEmail.includes('@')) {
-      setErrorMsg("Format email tidak valid. Pastikan email Anda aktif.");
+      const msg = "Format email tidak valid. Pastikan email Anda aktif.";
+      setErrorMsg(msg);
+      setToastMsg(msg);
+      setToastType("warning");
+      setShowToast(true);
       return;
     }
 
     if (!agreedToTerms) {
-      setErrorMsg("Anda harus menyetujui Perjanjian License Key untuk melanjutkan pembelian.");
+      const msg = "Anda wajib menyetujui Perjanjian License Key untuk melanjutkan transaksi.";
+      setErrorMsg(msg);
+      setToastMsg(msg);
+      setToastType("warning");
+      setShowToast(true);
+      setShakeCheckbox(true);
+      setTimeout(() => setShakeCheckbox(false), 800);
+
+      const el = document.getElementById("agreementCheckboxWrapper");
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
 
@@ -158,12 +182,16 @@ export default function CheckoutClient() {
           duration: plan,
           buyerName: buyerName.trim(),
           buyerEmail: buyerEmail.trim().toLowerCase(),
-          paymentMethod
+          paymentMethod,
+          agreedToTerms: Boolean(agreedToTerms)
         })
       });
 
       const data = await res.json();
       if (!res.ok) {
+        setToastMsg(data.error || "Gagal membuat transaksi pembayaran.");
+        setToastType("error");
+        setShowToast(true);
         throw new Error(data.error || "Gagal membuat transaksi pembayaran.");
       }
 
@@ -223,8 +251,16 @@ export default function CheckoutClient() {
 
   return (
     <div className="checkout-wrapper">
+      <Toast
+        message={toastMsg}
+        show={showToast}
+        onClose={() => setShowToast(false)}
+        position="top-right"
+        type={toastType}
+        duration={4000}
+      />
       <div className="container" style={{ maxWidth: '1040px' }}>
-        <form onSubmit={handleCheckout}>
+        <form onSubmit={handleCheckout} noValidate>
           <div className="checkout-grid" style={{ gap: '28px' }}>
             {/* LEFT: FORM INPUTS */}
             <div>
@@ -263,14 +299,17 @@ export default function CheckoutClient() {
                 </div>
 
                 <div 
-                  className="agreement-checkbox-wrapper" 
+                  id="agreementCheckboxWrapper"
+                  className={`agreement-checkbox-wrapper ${shakeCheckbox ? 'shake-checkbox' : ''}`} 
                   style={{ 
                     paddingTop: '16px', 
                     borderTop: '1px solid var(--color-border)', 
-                    marginTop: '16px' 
+                    marginTop: '16px',
+                    transition: 'all 0.3s ease'
                   }}
                 >
                   <label
+                    htmlFor="agreementCheckbox"
                     style={{
                       display: 'flex',
                       alignItems: 'flex-start',
@@ -285,9 +324,13 @@ export default function CheckoutClient() {
                     <input
                       type="checkbox"
                       id="agreementCheckbox"
-                      required
                       checked={agreedToTerms}
-                      onChange={(e) => setAgreedToTerms(e.target.checked)}
+                      onChange={(e) => {
+                        setAgreedToTerms(e.target.checked);
+                        if (e.target.checked && showToast) {
+                          setShowToast(false);
+                        }
+                      }}
                       style={{
                         width: '18px',
                         height: '18px',
