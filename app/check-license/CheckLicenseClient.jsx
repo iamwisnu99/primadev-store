@@ -108,7 +108,7 @@ export default function CheckLicensePage() {
               </div>
 
               <div style={{ marginTop: '24px', textAlign: 'center' }}>
-                <Link href="/renew" className="btn-primary" style={{ width: '100%', padding: '12px' }}>
+                <Link href={`/renew?key=${encodeURIComponent(key.trim())}`} className="btn-primary" style={{ width: '100%', padding: '12px' }}>
                   <RefreshCw size={15} />
                   <span>Perpanjang Lisensi Ini</span>
                 </Link>

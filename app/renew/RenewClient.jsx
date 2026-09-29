@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
 import { RefreshCw, Search, CheckCircle, AlertCircle, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 
 export default function RenewPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [licenseKey, setLicenseKey] = useState("");
   const [searching, setSearching] = useState(false);
   const [licenseData, setLicenseData] = useState(null);
@@ -17,30 +18,57 @@ export default function RenewPage() {
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState("");
 
-  const handleLookup = async (e) => {
-    e.preventDefault();
-    setSearchError("");
-    setLicenseData(null);
+  const initialKeyHandled = useRef(false);
 
-    if (!licenseKey.trim()) {
+  const performLookup = useCallback(async (keyToLookup) => {
+    const cleanKey = (keyToLookup || "").trim().toUpperCase();
+    if (!cleanKey) {
       setSearchError("Masukkan License Key yang ingin diperpanjang.");
       return;
     }
 
+    setSearchError("");
+    setLicenseData(null);
     setSearching(true);
+
     try {
-      const res = await fetch(`/api/licenses?id=${licenseKey.trim()}`);
+      const res = await fetch(`/api/licenses?id=${encodeURIComponent(cleanKey)}`);
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Lisensi tidak ditemukan di sistem.");
       }
       setLicenseData(data);
     } catch (err) {
-      setSearchError(err.message);
+      setSearchError(err.message || "Gagal memeriksa lisensi.");
     } finally {
       setSearching(false);
     }
+  }, []);
+
+  const handleLookup = async (e) => {
+    if (e) e.preventDefault();
+    performLookup(licenseKey);
   };
+
+  // Auto-fill license key from URL query (?key=...) and immediately clean address bar
+  useEffect(() => {
+    if (initialKeyHandled.current) return;
+    initialKeyHandled.current = true;
+
+    const urlKey = searchParams?.get('key') || searchParams?.get('licenseKey') || searchParams?.get('id');
+    if (urlKey) {
+      const cleanKey = urlKey.trim().toUpperCase();
+      setLicenseKey(cleanKey);
+
+      // Clean the URL immediately to display "https://store.primadev.id/renew"
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+
+      // Automatically check license data
+      performLookup(cleanKey);
+    }
+  }, [searchParams, performLookup]);
 
   const handleRenewPayment = async (e) => {
     e.preventDefault();

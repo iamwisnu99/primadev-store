@@ -1,4 +1,5 @@
-﻿import RenewClient from "./RenewClient";
+import { Suspense } from "react";
+import RenewClient from "./RenewClient";
 
 export const metadata = {
   title: "Perpanjang Masa Aktif Lisensi Software | Primadev Store",
@@ -48,7 +49,15 @@ export default function RenewPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(renewJsonLd) }}
       />
-      <RenewClient />
+      <Suspense fallback={
+        <div className="status-page-wrapper">
+          <div className="status-card" style={{ maxWidth: '480px', textAlign: 'center', padding: '40px' }}>
+            <div style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Memuat halaman perpanjangan...</div>
+          </div>
+        </div>
+      }>
+        <RenewClient />
+      </Suspense>
     </>
   );
 }
