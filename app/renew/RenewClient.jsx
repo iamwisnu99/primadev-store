@@ -112,10 +112,10 @@ export default function RenewPage() {
   return (
     <div className="checkout-wrapper">
       <div className="container" style={{ maxWidth: '800px' }}>
-        {/* HEADER SECTION (Removed 'Portal Perpanjangan' badge as requested) */}
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '8px' }}>Perpanjang Masa Aktif Lisensi</h1>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '15px' }}>
+        {/* HEADER SECTION */}
+        <div className="page-header-box">
+          <h1 className="page-title">Perpanjang Masa Aktif Lisensi</h1>
+          <p className="page-subtitle">
             Masukkan License Key Anda untuk memperpanjang durasi masa aktif aplikasi tanpa reset konfigurasi.
           </p>
         </div>
@@ -125,7 +125,7 @@ export default function RenewPage() {
           <form onSubmit={handleLookup}>
             <div className="form-group">
               <label className="form-label">Masukkan License Key Anda</label>
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div className="license-search-row">
                 <input
                   type="text"
                   placeholder="Contoh: PRIMA-XXXX-XXXX-XXXX"
@@ -137,11 +137,13 @@ export default function RenewPage() {
                 <button
                   type="submit"
                   disabled={searching}
-                  className="btn-primary"
-                  style={{ padding: '0 24px', flexShrink: 0 }}
+                  className="btn-primary license-search-btn"
                 >
                   {searching ? (
-                    <Loader2 className="animate-spin" size={18} />
+                    <>
+                      <Loader2 className="animate-spin" size={18} />
+                      <span>Memeriksa...</span>
+                    </>
                   ) : (
                     <>
                       <Search size={16} />
@@ -174,22 +176,22 @@ export default function RenewPage() {
 
               <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '16px' }}>Detail Lisensi Terdaftar</h3>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '14px' }}>
-                <div>
-                  <span style={{ color: 'var(--color-text-secondary)', display: 'block', fontSize: '12px' }}>Nama Pemilik</span>
-                  <strong>{licenseData.name}</strong>
+              <div className="license-details-grid">
+                <div className="license-detail-item">
+                  <span className="license-detail-label">Nama Pemilik</span>
+                  <strong className="license-detail-value">{licenseData.name}</strong>
                 </div>
-                <div>
-                  <span style={{ color: 'var(--color-text-secondary)', display: 'block', fontSize: '12px' }}>Email</span>
-                  <strong>{licenseData.email}</strong>
+                <div className="license-detail-item">
+                  <span className="license-detail-label">Email</span>
+                  <strong className="license-detail-value">{licenseData.email}</strong>
                 </div>
-                <div>
-                  <span style={{ color: 'var(--color-text-secondary)', display: 'block', fontSize: '12px' }}>Tipe Paket Saat Ini</span>
-                  <strong>{licenseData.type?.toUpperCase()}</strong>
+                <div className="license-detail-item">
+                  <span className="license-detail-label">Tipe Paket Saat Ini</span>
+                  <strong className="license-detail-value">{licenseData.type?.toUpperCase()}</strong>
                 </div>
-                <div>
-                  <span style={{ color: 'var(--color-text-secondary)', display: 'block', fontSize: '12px' }}>Masa Berlaku Saat Ini</span>
-                  <strong style={{ color: 'var(--color-accent)' }}>{licenseData.expiryDate || 'Seumur Hidup'}</strong>
+                <div className="license-detail-item">
+                  <span className="license-detail-label">Masa Berlaku Saat Ini</span>
+                  <strong className="license-detail-value accent">{licenseData.expiryDate || 'Seumur Hidup'}</strong>
                 </div>
               </div>
             </div>

@@ -2714,3 +2714,214 @@ html.light .shake-checkbox {
     transform: scale(1);
   }
 }
+
+
+/* ==========================================================================
+   MOBILE-RESPONSIVE DESIGN SYSTEM (RENEW, CHECK LICENSE, SUPPORT)
+   ========================================================================== */
+
+/* Page Header Typography */
+.page-header-box {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.page-title {
+  font-size: clamp(22px, 5.5vw, 32px) !important;
+  font-weight: 800;
+  margin-bottom: 8px;
+  line-height: 1.25;
+  color: var(--color-text);
+}
+
+.page-subtitle {
+  color: var(--color-text-secondary);
+  font-size: clamp(13.5px, 3.5vw, 15px);
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.55;
+}
+
+/* Support Grid Layout */
+.support-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+/* Form Two-Column Rows */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* License Search Row */
+.license-search-row {
+  display: flex;
+  gap: 10px;
+}
+
+.license-search-btn {
+  padding: 0 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* License Details Grid (Renew Page) */
+.license-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  font-size: 14px;
+}
+
+.license-detail-item {
+  min-width: 0;
+}
+
+.license-detail-label {
+  color: var(--color-text-secondary);
+  display: block;
+  font-size: 12px;
+  margin-bottom: 3px;
+}
+
+.license-detail-value {
+  color: var(--color-text);
+  font-size: 14px;
+  word-break: break-word;
+}
+
+.license-detail-value.accent {
+  color: var(--color-accent);
+}
+
+/* License Info Row (Check License Page) */
+.license-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+  gap: 12px;
+}
+
+.license-info-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+/* Ensure Phone input does not push outside */
+.phone-number-input {
+  min-width: 0 !important;
+}
+
+.country-code-trigger {
+  flex-shrink: 0 !important;
+}
+
+/* --------------------------------------------------------------------------
+   Media Queries: Breakpoints <= 900px, <= 640px, <= 540px, <= 480px
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .checkout-grid,
+  .support-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0 16px !important;
+  }
+
+  .checkout-wrapper {
+    padding: 24px 0 60px !important;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+}
+
+@media (max-width: 540px) {
+  .page-header-box {
+    margin-bottom: 24px !important;
+  }
+
+  .form-card,
+  .order-summary-card {
+    padding: 20px 16px !important;
+    border-radius: 16px !important;
+  }
+
+  .license-search-row {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .license-search-btn {
+    width: 100% !important;
+    height: 46px !important;
+    padding: 12px 20px !important;
+  }
+
+  .license-details-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .plan-tabs {
+    flex-direction: column !important;
+    gap: 6px !important;
+    padding: 6px !important;
+  }
+
+  .plan-tab {
+    padding: 10px 14px !important;
+    font-size: 13px !important;
+    text-align: center !important;
+  }
+
+  .license-info-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+    padding-bottom: 12px !important;
+  }
+
+  .license-info-row strong {
+    word-break: break-word !important;
+    text-align: left !important;
+  }
+
+  .country-modal-backdrop {
+    padding: 12px !important;
+  }
+
+  .country-modal-card {
+    max-height: 90vh !important;
+    border-radius: 14px !important;
+  }
+
+  .country-modal-top-bar {
+    padding: 16px 16px 12px 16px !important;
+  }
+
+  .country-modal-toolbar {
+    padding: 0 16px 12px 16px !important;
+  }
+
+  .country-item-btn {
+    padding: 10px 14px !important;
+  }
+}

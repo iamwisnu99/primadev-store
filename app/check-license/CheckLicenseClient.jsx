@@ -40,9 +40,9 @@ export default function CheckLicensePage() {
     <div className="checkout-wrapper">
       <div className="container" style={{ maxWidth: '680px' }}>
         {/* HEADER */}
-        <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-          <h1 style={{ fontSize: '30px', fontWeight: 800, marginBottom: '8px' }}>Cek Status & Masa Aktif Lisensi</h1>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '15px' }}>
+        <div className="page-header-box">
+          <h1 className="page-title">Cek Status & Masa Aktif Lisensi</h1>
+          <p className="page-subtitle">
             Periksa status keaslian, aplikasi terdaftar, dan sisa masa aktif lisensi software Anda.
           </p>
         </div>
@@ -51,7 +51,7 @@ export default function CheckLicensePage() {
           <form onSubmit={handleCheck}>
             <div className="form-group">
               <label className="form-label">Masukkan License Key</label>
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div className="license-search-row">
                 <input
                   type="text"
                   required
@@ -64,11 +64,19 @@ export default function CheckLicensePage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="btn-primary"
-                  style={{ padding: '0 24px' }}
+                  className="btn-primary license-search-btn"
                 >
-                  {loading ? <Loader2 className="animate-spin" size={18} /> : <Search size={18} />}
-                  <span>Periksa</span>
+                  {loading ? (
+                    <>
+                      <Loader2 className="animate-spin" size={18} />
+                      <span>Memeriksa...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Search size={18} />
+                      <span>Periksa</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -89,21 +97,21 @@ export default function CheckLicensePage() {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid var(--color-border)' }}>
+                <div className="license-info-row">
                   <span style={{ color: 'var(--color-text-secondary)' }}>Aplikasi</span>
                   <strong>{result.appName}</strong>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid var(--color-border)' }}>
+                <div className="license-info-row">
                   <span style={{ color: 'var(--color-text-secondary)' }}>Pemilik Terdaftar</span>
                   <strong>{result.name}</strong>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid var(--color-border)' }}>
+                <div className="license-info-row">
                   <span style={{ color: 'var(--color-text-secondary)' }}>Status Lisensi</span>
                   <strong style={{ color: '#22c55e' }}>{result.status?.toUpperCase()}</strong>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid var(--color-border)' }}>
+                <div className="license-info-row">
                   <span style={{ color: 'var(--color-text-secondary)' }}>Masa Berlaku</span>
-                  <strong>{result.expiryDate || 'Seumur Hidup (Lifetime)'}</strong>
+                  <strong style={{ color: 'var(--color-accent)' }}>{result.expiryDate || 'Seumur Hidup (Lifetime)'}</strong>
                 </div>
               </div>
 

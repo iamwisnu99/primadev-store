@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useLang } from "@/context/LanguageContext";
 import t from "@/lib/translations";
 import {
@@ -44,6 +45,11 @@ export default function SupportPage() {
   const [selectedCountry, setSelectedCountry] = useState(countries[0] || { code: "+62", name: "Indonesia", flag: "🇮🇩", iso: "ID" });
   const [phoneDigits, setPhoneDigits] = useState("");
   const [isCountryModalOpen, setIsCountryModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [isCountryModalClosing, setIsCountryModalClosing] = useState(false);
   const [countrySearch, setCountrySearch] = useState("");
   const searchInputRef = useRef(null);
@@ -187,14 +193,12 @@ export default function SupportPage() {
     <div className="checkout-wrapper">
       <div className="container" style={{ maxWidth: '980px' }}>
         {/* HEADER */}
-        <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-          <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '8px' }}>{tr.title}</h1>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '15px', maxWidth: '640px', margin: '0 auto' }}>
-            {tr.subtitle}
-          </p>
+        <div className="page-header-box">
+          <h1 className="page-title">{tr.title}</h1>
+          <p className="page-subtitle">{tr.subtitle}</p>
         </div>
 
-        <div className="checkout-grid" style={{ gridTemplateColumns: '1.6fr 1fr', gap: '28px' }}>
+        <div className="support-grid">
           {/* FORM CARD */}
           <div className="form-card">
             <h2 className="form-section-title">
@@ -456,7 +460,7 @@ export default function SupportPage() {
       </div>
 
       {/* COUNTRY SELECTION MODAL */}
-      {isCountryModalOpen && (
+      {mounted && isCountryModalOpen && createPortal(
         <div
           className={`country-modal-backdrop ${isCountryModalClosing ? "closing" : ""}`}
           onClick={closeCountryModal}
@@ -562,7 +566,8 @@ export default function SupportPage() {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
