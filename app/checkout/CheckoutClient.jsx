@@ -181,6 +181,7 @@ export default function CheckoutClient() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          action: 'create_transaction',
           appId,
           duration: plan,
           buyerName: buyerName.trim(),

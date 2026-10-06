@@ -333,7 +333,7 @@ export async function POST(req) {
 
   try {
     const body = await req.json();
-    const { action } = body;
+    const action = body.action || (body.appId ? 'create_transaction' : '');
     const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'https://store.primadev.id';
     const getFinishUrl = (oid) => `${origin}/waiting-payment?orderId=${encodeURIComponent(oid)}`;
 
