@@ -5,6 +5,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
 import Toast from "@/components/Toast";
+import { useLang } from "@/context/LanguageContext";
+import t from "@/lib/translations";
 import {
   Lock,
   AlertCircle,
@@ -35,6 +37,8 @@ const PRODUCT_FOLDER_MAP = {
 export default function CheckoutClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { lang } = useLang();
+  const tr = t[lang]?.checkoutPage || t.id.checkoutPage;
 
   const appId = searchParams.get('app') || 'struk-spbu';
   const plan = searchParams.get('plan') || 'monthly';
@@ -109,10 +113,10 @@ export default function CheckoutClient() {
   };
 
   const getPlanLabel = (p) => {
-    if (p === 'monthly') return '1 Bulan (Bulanan)';
-    if (p === 'yearly') return '1 Tahun (Tahunan)';
-    if (p === 'lifetime') return 'Seumur Hidup (Lifetime)';
-    return p?.toUpperCase() || 'Bulanan';
+    if (p === 'monthly') return tr.planMonthly;
+    if (p === 'yearly') return tr.planYearly;
+    if (p === 'lifetime') return tr.planLifetime;
+    return p?.toUpperCase() || (lang === 'en' ? 'Monthly' : 'Bulanan');
   };
 
   const getPaymentLabel = (m) => {
@@ -137,7 +141,7 @@ export default function CheckoutClient() {
     setErrorMsg("");
 
     if (!buyerName.trim()) {
-      const msg = "Nama Lengkap wajib diisi.";
+      const msg = tr.errNameRequired;
       setErrorMsg(msg);
       setToastMsg(msg);
       setToastType("warning");
@@ -146,7 +150,7 @@ export default function CheckoutClient() {
     }
 
     if (!buyerEmail.trim() || !buyerEmail.includes('@')) {
-      const msg = "Format email tidak valid. Pastikan email Anda aktif.";
+      const msg = tr.errEmailInvalid;
       setErrorMsg(msg);
       setToastMsg(msg);
       setToastType("warning");
@@ -155,7 +159,7 @@ export default function CheckoutClient() {
     }
 
     if (!agreedToTerms) {
-      const msg = "Anda wajib menyetujui Perjanjian License Key untuk melanjutkan transaksi.";
+      const msg = tr.agreementAlert;
       setErrorMsg(msg);
       setToastMsg(msg);
       setToastType("warning");
@@ -177,7 +181,6 @@ export default function CheckoutClient() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'create_transaction',
           appId,
           duration: plan,
           buyerName: buyerName.trim(),
@@ -189,10 +192,11 @@ export default function CheckoutClient() {
 
       const data = await res.json();
       if (!res.ok) {
-        setToastMsg(data.error || "Gagal membuat transaksi pembayaran.");
+        const errorText = data.error || tr.errTransactionFailed;
+        setToastMsg(errorText);
         setToastType("error");
         setShowToast(true);
-        throw new Error(data.error || "Gagal membuat transaksi pembayaran.");
+        throw new Error(errorText);
       }
 
       sessionStorage.setItem('primadev_last_charge', JSON.stringify(data));
@@ -224,9 +228,9 @@ export default function CheckoutClient() {
           }}>
             <Loader2 className="animate-spin" size={30} />
           </div>
-          <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '6px' }}>Memverifikasi Data Produk...</h3>
+          <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '6px' }}>{tr.verifyingData}</h3>
           <p style={{ color: 'var(--color-text-secondary)', fontSize: '13.5px' }}>
-            Menghubungkan ke database lisensi resmi Primadev.
+            {tr.connectingDb}
           </p>
         </div>
       </div>
@@ -237,12 +241,12 @@ export default function CheckoutClient() {
     return (
       <div className="status-page-wrapper">
         <div className="status-card" style={{ maxWidth: '480px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '8px' }}>Produk Tidak Ditemukan</h2>
+          <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '8px' }}>{tr.productNotFound}</h2>
           <p style={{ color: 'var(--color-text-secondary)', margin: '12px 0 24px' }}>
-            Produk yang Anda pilih tidak tersedia di sistem.
+            {tr.productNotFoundDesc}
           </p>
           <Link href="/#catalog" className="btn-primary" style={{ width: '100%' }}>
-            Kembali ke Katalog
+            {tr.btnBackToCatalog}
           </Link>
         </div>
       </div>
@@ -267,15 +271,15 @@ export default function CheckoutClient() {
               {/* 1. DATA PEMBELI */}
               <div className="form-card" style={{ marginBottom: '24px' }}>
                 <h2 className="form-section-title">
-                  <span>1. Data Pembeli</span>
+                  <span>{tr.step1Title}</span>
                 </h2>
 
                 <div className="form-group">
-                  <label className="form-label">Nama Lengkap *</label>
+                  <label className="form-label">{tr.nameLabel}</label>
                   <input
                     type="text"
                     required
-                    placeholder="CONTOH: BUDI SANTOSO"
+                    placeholder={tr.namePlaceholder}
                     className="form-input input-capslock"
                     autoCapitalize="characters"
                     value={buyerName}
@@ -284,17 +288,17 @@ export default function CheckoutClient() {
                 </div>
 
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Email Aktif (License Key dikirim ke sini) *</label>
+                  <label className="form-label">{tr.emailLabel}</label>
                   <input
                     type="email"
                     required
-                    placeholder="nama@email.com"
+                    placeholder={tr.emailPlaceholder}
                     className="form-input"
                     value={buyerEmail}
                     onChange={(e) => setBuyerEmail(e.target.value)}
                   />
                   <span className="input-hint" style={{ marginTop: '6px', display: 'block' }}>
-                    Pastikan email Anda aktif dan benar untuk menerima kode lisensi dan invoice PDF.
+                    {tr.emailHint}
                   </span>
                 </div>
 
@@ -341,7 +345,7 @@ export default function CheckoutClient() {
                       }}
                     />
                     <span>
-                      Dengan membeli Lisensi Key ini, Anda menyatakan setuju dengan{' '}
+                      {tr.agreementPreText}
                       <a
                         href="https://primadev.id/perjanjian-lisensi"
                         target="_blank"
@@ -353,7 +357,7 @@ export default function CheckoutClient() {
                         }}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        Perjanjian License Key.
+                        {tr.agreementLinkText}
                       </a>
                     </span>
                   </label>
@@ -363,7 +367,7 @@ export default function CheckoutClient() {
               {/* 2. METODE PEMBAYARAN */}
               <div className="form-card">
                 <h2 className="form-section-title">
-                  <span>2. Metode Pembayaran</span>
+                  <span>{tr.step2Title}</span>
                 </h2>
                 <PaymentMethodSelector
                   selectedMethod={paymentMethod}
@@ -387,7 +391,11 @@ export default function CheckoutClient() {
                     <div style={{ lineHeight: 1.5 }}>
                       <strong>Mandiri Bill Payment (Midtrans Gateway):</strong>
                       <div style={{ color: 'var(--color-text-secondary)', marginTop: '2px' }}>
-                        Pembayaran menggunakan <strong>Kode Perusahaan (Biller Code: 70012)</strong> dan <strong>Bill Key</strong> yang akan ditampilkan pada halaman instruksi pembayaran.
+                        {lang === 'en' ? (
+                          <>Payment using <strong>Company Code (Biller Code: 70012)</strong> and <strong>Bill Key</strong> which will be shown on the payment instruction page.</>
+                        ) : (
+                          <>Pembayaran menggunakan <strong>Kode Perusahaan (Biller Code: 70012)</strong> dan <strong>Bill Key</strong> yang akan ditampilkan pada halaman instruksi pembayaran.</>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -399,7 +407,7 @@ export default function CheckoutClient() {
             <div>
               <div className="order-summary-card">
                 <div style={{ marginBottom: '18px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>Ringkasan Pesanan</h3>
+                  <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>{tr.step3Title}</h3>
                 </div>
 
                 {/* PRODUCT BOX WITH DYNAMIC ICON OR FALLBACK */}
@@ -424,34 +432,34 @@ export default function CheckoutClient() {
                   </div>
                   <div className="summary-product-info">
                     <div className="summary-product-title">{product.name}</div>
-                    <div className="summary-product-tag">Paket Lisensi: {getPlanLabel(plan)}</div>
+                    <div className="summary-product-tag">{tr.packageLabel}: {getPlanLabel(plan)}</div>
                   </div>
                 </div>
 
                 {/* BREAKDOWN ROWS */}
                 <div className="summary-row">
-                  <span>Harga Software</span>
+                  <span>{tr.priceLabel}</span>
                   <span>{formatRupiah(price)}</span>
                 </div>
 
                 <div className="summary-row">
-                  <span>Durasi Akses</span>
+                  <span>{tr.durationLabel}</span>
                   <span>{getPlanLabel(plan)}</span>
                 </div>
 
                 <div className="summary-row">
-                  <span>Metode Bayar</span>
+                  <span>{tr.paymentMethodLabel}</span>
                   <span style={{ color: 'var(--color-accent)', fontWeight: 700 }}>{getPaymentLabel(paymentMethod)}</span>
                 </div>
 
                 <div className="summary-row">
-                  <span>Biaya Admin</span>
-                  <span style={{ color: '#22c55e', fontWeight: 700 }}>Rp 0 (Gratis)</span>
+                  <span>{tr.adminFeeLabel}</span>
+                  <span style={{ color: '#22c55e', fontWeight: 700 }}>{tr.adminFeeFree}</span>
                 </div>
 
                 {/* TOTAL ROW */}
                 <div className="summary-row total">
-                  <span>Total Tagihan</span>
+                  <span>{tr.totalLabel}</span>
                   <span className="total-price-text">{formatRupiah(price)}</span>
                 </div>
 
@@ -482,11 +490,11 @@ export default function CheckoutClient() {
                   {submitting ? (
                     <>
                       <Loader2 className="animate-spin" size={18} />
-                      <span>Memproses Pembayaran...</span>
+                      <span>{tr.btnProcessing}</span>
                     </>
                   ) : (
                     <>
-                      <span>Bayar Sekarang ({formatRupiah(price)})</span>
+                      <span>{tr.btnPay} ({formatRupiah(price)})</span>
                       <ArrowRight size={16} />
                     </>
                   )}
@@ -494,7 +502,7 @@ export default function CheckoutClient() {
 
                 <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
                   <Lock size={13} />
-                  <span>Enkripsi Pembayaran Aman via Midtrans Gateway</span>
+                  <span>{tr.encryptionNote}</span>
                 </div>
               </div>
             </div>

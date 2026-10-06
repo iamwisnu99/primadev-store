@@ -4,9 +4,11 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createPortal } from "react-dom";
+import Toast from "@/components/Toast";
+import { useLang } from "@/context/LanguageContext";
+import t from "@/lib/translations";
 import {
   Copy,
-  CheckCircle,
   Clock,
   RefreshCw,
   ExternalLink,
@@ -19,25 +21,7 @@ import {
   LifeBuoy
 } from "lucide-react";
 
-function Toast({ message, show, onClose }) {
-  useEffect(() => {
-    if (show) {
-      const timer = setTimeout(onClose, 2500);
-      return () => clearTimeout(timer);
-    }
-  }, [show, onClose]);
-
-  if (!show) return null;
-
-  return (
-    <div className="toast-notification">
-      <CheckCircle size={16} color="#22c55e" />
-      <span>{message}</span>
-    </div>
-  );
-}
-
-function CountdownTimer({ initialSeconds = 86400 }) {
+function CountdownTimer({ initialSeconds = 86400, label = "Sisa Waktu Pembayaran" }) {
   const [timeLeft, setTimeLeft] = useState(initialSeconds);
 
   useEffect(() => {
@@ -57,7 +41,7 @@ function CountdownTimer({ initialSeconds = 86400 }) {
   return (
     <div className="timer-pill">
       <Clock size={15} />
-      <span>Sisa Waktu Pembayaran: {pad(hours)}:{pad(minutes)}:{pad(seconds)}</span>
+      <span>{label}: {pad(hours)}:{pad(minutes)}:{pad(seconds)}</span>
     </div>
   );
 }
@@ -65,6 +49,9 @@ function CountdownTimer({ initialSeconds = 86400 }) {
 export default function WaitingPaymentClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { lang } = useLang();
+  const tr = t[lang]?.waitingPaymentPage || t.id.waitingPaymentPage;
+
   const orderId = searchParams.get('orderId') || searchParams.get('order_id') || (typeof window !== 'undefined' ? sessionStorage.getItem('primadev_last_order_id') : null);
 
   const [chargeData, setChargeData] = useState(null);
@@ -72,6 +59,14 @@ export default function WaitingPaymentClient() {
   const [cancelling, setCancelling] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isCancelled, setIsCancelled] = useState(false);
+
+  const [showToast, setShowToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState("");
+  const [toastType, setToastType] = useState("success");
+  const [checkStatusText, setCheckStatusText] = useState("");
+
+  const pollIntervalRef = useRef(null);
 
   useEffect(() => {
     setMounted(true);
@@ -99,18 +94,26 @@ export default function WaitingPaymentClient() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showCancelModal, cancelling]);
-  const [isCancelled, setIsCancelled] = useState(false);
 
-  const [showToast, setShowToast] = useState(false);
-  const [toastMsg, setToastMsg] = useState("");
-  const [checkStatusText, setCheckStatusText] = useState("");
-
-  const pollIntervalRef = useRef(null);
-
-  const copyText = (text, label) => {
+  const copyText = (text, labelKey) => {
     if (!text) return;
     navigator.clipboard.writeText(text);
-    setToastMsg(`${label} berhasil disalin!`);
+
+    let msg = "";
+    if (labelKey === 'va') {
+      msg = tr.copySuccessVa;
+    } else {
+      const labelNames = {
+        orderId: lang === 'en' ? 'Order ID' : 'ID Order',
+        billerCode: 'Biller Code',
+        billKey: 'Bill Key',
+        paymentCode: lang === 'en' ? 'Payment Code' : 'Kode Pembayaran'
+      };
+      msg = tr.copySuccessGeneric(labelNames[labelKey] || labelKey);
+    }
+
+    setToastMsg(msg);
+    setToastType("success");
     setShowToast(true);
   };
 
@@ -150,7 +153,7 @@ export default function WaitingPaymentClient() {
         return;
       }
 
-      // If marked cancelled / expired / fraud_denied — stop polling
+      // If marked cancelled / expired / fraud_denied stop polling
       if (
         data.status === 'cancelled' || data.isCancelled ||
         data.status === 'expired' || data.status === 'fraud_denied'
@@ -162,19 +165,23 @@ export default function WaitingPaymentClient() {
       }
 
       if (isManual) {
-        setCheckStatusText("Pembayaran belum terdeteksi. Silakan selesaikan pembayaran lalu coba lagi.");
+        setCheckStatusText(lang === 'en'
+          ? "Payment not yet detected. Please complete your payment and try again."
+          : "Pembayaran belum terdeteksi. Silakan selesaikan pembayaran lalu coba lagi.");
         setTimeout(() => setCheckStatusText(""), 4000);
       }
     } catch (e) {
       console.error("Gagal verifikasi pembayaran:", e);
       if (isManual) {
-        setCheckStatusText("Gagal memeriksa status pembayaran. Coba lagi beberapa saat.");
+        setCheckStatusText(lang === 'en'
+          ? "Failed to check payment status. Please try again shortly."
+          : "Gagal memeriksa status pembayaran. Coba lagi beberapa saat.");
         setTimeout(() => setCheckStatusText(""), 4000);
       }
     } finally {
       if (isManual) setChecking(false);
     }
-  }, [orderId, isCancelled, router]);
+  }, [orderId, isCancelled, router, lang]);
 
   const handleCancelOrder = async () => {
     if (!orderId) return;
@@ -196,14 +203,16 @@ export default function WaitingPaymentClient() {
         sessionStorage.removeItem('primadev_last_charge');
         setIsCancelled(true);
         setShowCancelModal(false);
-        setToastMsg("Transaksi berhasil dibatalkan.");
+        setToastMsg(tr.cancelSuccess);
+        setToastType("success");
         setShowToast(true);
       } else {
-        throw new Error(data.error || "Gagal membatalkan transaksi.");
+        throw new Error(data.error || tr.cancelFailed);
       }
     } catch (err) {
       console.error("Cancel error:", err);
-      setToastMsg(err.message || "Gagal membatalkan transaksi.");
+      setToastMsg(err.message || tr.cancelFailed);
+      setToastType("error");
       setShowToast(true);
     } finally {
       setCancelling(false);
@@ -238,12 +247,12 @@ export default function WaitingPaymentClient() {
     return (
       <div className="status-page-wrapper">
         <div className="status-card" style={{ maxWidth: '480px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '8px' }}>ID Order Tidak Ditemukan</h2>
+          <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '8px' }}>{tr.orderNotFoundTitle}</h2>
           <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px', margin: '12px 0 24px' }}>
-            Parameter pesanan tidak valid atau sesi telah berakhir.
+            {tr.orderNotFoundDesc}
           </p>
           <Link href="/#catalog" className="btn-primary" style={{ width: '100%' }}>
-            Kembali ke Katalog
+            {tr.btnBackToCatalog}
           </Link>
         </div>
       </div>
@@ -271,20 +280,20 @@ export default function WaitingPaymentClient() {
           </div>
 
           <h1 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '8px', color: 'var(--color-text)' }}>
-            Transaksi Dibatalkan
+            {tr.orderCancelledTitle}
           </h1>
           <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px', lineHeight: 1.6, marginBottom: '24px' }}>
-            Pesanan dengan ID <strong style={{ fontFamily: 'monospace', color: 'var(--color-text)' }}>{orderId}</strong> telah dibatalkan. Anda dapat membuat pesanan baru kapan saja.
+            {tr.orderCancelledDesc(orderId)}
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <Link href="/#catalog" className="btn-primary" style={{ width: '100%', padding: '14px', fontSize: '15px', justifyContent: 'center' }}>
               <ShoppingBag size={17} />
-              <span>Pesan Ulang Lisensi</span>
+              <span>{lang === 'en' ? 'Order License Again' : 'Pesan Ulang Lisensi'}</span>
             </Link>
             <Link href="/support" className="btn-secondary" style={{ width: '100%', padding: '12px', fontSize: '14px', justifyContent: 'center' }}>
               <LifeBuoy size={16} />
-              <span>Butuh Bantuan? Hubungi Kami</span>
+              <span>{lang === 'en' ? 'Need Help? Contact Us' : 'Butuh Bantuan? Hubungi Kami'}</span>
             </Link>
           </div>
         </div>
@@ -312,11 +321,11 @@ export default function WaitingPaymentClient() {
     <div className="status-page-wrapper">
       <div className="status-card">
         {/* TIMER PILL */}
-        <CountdownTimer initialSeconds={86400} />
+        <CountdownTimer initialSeconds={86400} label={tr.timerRemaining} />
 
-        <h1 style={{ fontSize: '26px', fontWeight: 800, marginBottom: '8px' }}>Selesaikan Pembayaran</h1>
+        <h1 style={{ fontSize: '26px', fontWeight: 800, marginBottom: '8px' }}>{tr.pageTitle}</h1>
         <p style={{ color: 'var(--color-text-secondary)', fontSize: '14.5px', marginBottom: '20px' }}>
-          Silakan lakukan pembayaran sesuai nominal dan instruksi di bawah ini:
+          {tr.pageSubtitle}
         </p>
 
         {/* ORDER & AMOUNT SUMMARY BOX */}
@@ -329,14 +338,14 @@ export default function WaitingPaymentClient() {
           marginBottom: '20px'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', paddingBottom: '10px', borderBottom: '1px solid var(--color-border)' }}>
-            <span style={{ color: 'var(--color-text-secondary)' }}>ID Transaksi:</span>
+            <span style={{ color: 'var(--color-text-secondary)' }}>{tr.transactionId}</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <strong style={{ fontFamily: 'monospace', fontSize: '13px' }}>{orderId}</strong>
               <button
                 type="button"
-                onClick={() => copyText(orderId, 'ID Order')}
+                onClick={() => copyText(orderId, 'orderId')}
                 style={{ background: 'none', border: 'none', color: 'var(--color-accent)', cursor: 'pointer', display: 'flex', padding: 0 }}
-                title="Salin ID"
+                title={tr.btnCopy}
               >
                 <Copy size={13} />
               </button>
@@ -345,7 +354,7 @@ export default function WaitingPaymentClient() {
 
           {grossAmount && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px' }}>
-              <span style={{ color: 'var(--color-text-secondary)', fontSize: '13.5px' }}>Total Pembayaran:</span>
+              <span style={{ color: 'var(--color-text-secondary)', fontSize: '13.5px' }}>{tr.totalPayment}</span>
               <strong style={{ fontSize: '18px', color: 'var(--color-accent)', fontWeight: 800 }}>
                 {formatRupiah(grossAmount)}
               </strong>
@@ -380,7 +389,7 @@ export default function WaitingPaymentClient() {
             }}>
               <div>
                 <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Kode Perusahaan (Biller Code)
+                  {lang === 'en' ? 'Company Code (Biller Code)' : 'Kode Perusahaan (Biller Code)'}
                 </div>
                 <div style={{ fontSize: '20px', fontWeight: 800, fontFamily: 'monospace', color: 'var(--color-text)', letterSpacing: '1px', marginTop: '2px' }}>
                   {billerCode}
@@ -389,11 +398,11 @@ export default function WaitingPaymentClient() {
               <button
                 type="button"
                 className="btn-secondary"
-                onClick={() => copyText(billerCode, 'Biller Code')}
+                onClick={() => copyText(billerCode, 'billerCode')}
                 style={{ padding: '8px 14px', fontSize: '12px', height: 'auto' }}
               >
                 <Copy size={13} />
-                <span>Salin</span>
+                <span>{tr.btnCopy}</span>
               </button>
             </div>
 
@@ -409,7 +418,7 @@ export default function WaitingPaymentClient() {
             }}>
               <div>
                 <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Kode Pembayaran (Bill Key)
+                  {lang === 'en' ? 'Payment Code (Bill Key)' : 'Kode Pembayaran (Bill Key)'}
                 </div>
                 <div style={{ fontSize: '20px', fontWeight: 800, fontFamily: 'monospace', color: 'var(--color-accent)', letterSpacing: '1px', marginTop: '2px' }}>
                   {billKey}
@@ -418,24 +427,35 @@ export default function WaitingPaymentClient() {
               <button
                 type="button"
                 className="btn-primary"
-                onClick={() => copyText(billKey, 'Bill Key')}
+                onClick={() => copyText(billKey, 'billKey')}
                 style={{ padding: '8px 14px', fontSize: '12px', height: 'auto' }}
               >
                 <Copy size={13} />
-                <span>Salin</span>
+                <span>{tr.btnCopy}</span>
               </button>
             </div>
 
             {/* MANDIRI GUIDE INSTRUCTIONS */}
             <div className="qris-guide-box" style={{ marginTop: '16px' }}>
               <div style={{ fontWeight: 700, marginBottom: '8px', color: 'var(--color-text)', fontSize: '13px' }}>
-                Panduan Pembayaran Mandiri:
+                {lang === 'en' ? 'Mandiri Payment Instructions:' : 'Panduan Pembayaran Mandiri:'}
               </div>
               <ol style={{ paddingLeft: '18px', margin: 0, display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '12.5px', color: 'var(--color-text-secondary)' }}>
-                <li>Buka aplikasi <strong>Livin' by Mandiri</strong> &gt; pilih menu <strong>Bayar</strong>.</li>
-                <li>Pilih <strong>Multi Payment / Penyedia Jasa</strong> &gt; cari <strong>Midtrans</strong> atau masukkan Biller Code: <strong>{billerCode}</strong>.</li>
-                <li>Masukkan Bill Key / Nomor Pelanggan: <strong>{billKey}</strong>.</li>
-                <li>Periksa nominal tagihan ({formatRupiah(grossAmount)}) lalu selesaikan pembayaran.</li>
+                {lang === 'en' ? (
+                  <>
+                    <li>Open <strong>Livin' by Mandiri</strong> app &gt; select <strong>Pay (Bayar)</strong> menu.</li>
+                    <li>Choose <strong>Multi Payment / Service Provider</strong> &gt; search <strong>Midtrans</strong> or enter Biller Code: <strong>{billerCode}</strong>.</li>
+                    <li>Enter Bill Key / Customer Number: <strong>{billKey}</strong>.</li>
+                    <li>Verify payment total ({formatRupiah(grossAmount)}) and complete payment.</li>
+                  </>
+                ) : (
+                  <>
+                    <li>Buka aplikasi <strong>Livin' by Mandiri</strong> &gt; pilih menu <strong>Bayar</strong>.</li>
+                    <li>Pilih <strong>Multi Payment / Penyedia Jasa</strong> &gt; cari <strong>Midtrans</strong> atau masukkan Biller Code: <strong>{billerCode}</strong>.</li>
+                    <li>Masukkan Bill Key / Nomor Pelanggan: <strong>{billKey}</strong>.</li>
+                    <li>Periksa nominal tagihan ({formatRupiah(grossAmount)}) lalu selesaikan pembayaran.</li>
+                  </>
+                )}
               </ol>
             </div>
           </div>
@@ -445,17 +465,17 @@ export default function WaitingPaymentClient() {
         {!isMandiri && vaNumbers.length > 0 && (
           <div className="va-box">
             <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Nomor Virtual Account {vaNumbers[0].bank?.toUpperCase()}
+              {tr.vaNumberBank(vaNumbers[0].bank?.toUpperCase())}
             </div>
             <div className="va-number">{vaNumbers[0].va_number}</div>
             <button
               type="button"
               className="btn-primary"
-              onClick={() => copyText(vaNumbers[0].va_number, 'Nomor VA')}
+              onClick={() => copyText(vaNumbers[0].va_number, 'va')}
               style={{ padding: '10px 24px', margin: '0 auto' }}
             >
               <Copy size={15} />
-              <span>Salin Nomor VA</span>
+              <span>{tr.btnCopyVa}</span>
             </button>
           </div>
         )}
@@ -473,15 +493,17 @@ export default function WaitingPaymentClient() {
                   style={{ display: 'block', margin: '0 auto', borderRadius: '8px' }}
                 />
               ) : (
-                <div style={{ padding: '60px 20px', color: '#000' }}>QR Code sedang digenerate...</div>
+                <div style={{ padding: '60px 20px', color: '#000' }}>
+                  {lang === 'en' ? 'Generating QR Code...' : 'QR Code sedang digenerate...'}
+                </div>
               )}
             </div>
             <div className="qris-guide-box">
-              <div style={{ fontWeight: 700, marginBottom: '6px', color: 'var(--color-text)' }}>Cara Pembayaran QRIS:</div>
+              <div style={{ fontWeight: 700, marginBottom: '6px', color: 'var(--color-text)' }}>{tr.qrisTitle}</div>
               <ol style={{ paddingLeft: '18px', margin: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <li>Buka aplikasi m-Banking (BCA, Mandiri, BRI, BNI) atau E-Wallet (GoPay, OVO, DANA, ShopeePay).</li>
-                <li>Pilih menu <strong>Bayar / Scan QRIS</strong>.</li>
-                <li>Arahkan kamera ke QR Code di atas dan konfirmasi pembayaran.</li>
+                <li>{tr.qrisStep1}</li>
+                <li>{tr.qrisStep2}</li>
+                <li>{tr.qrisStep3}</li>
               </ol>
             </div>
           </div>
@@ -491,7 +513,7 @@ export default function WaitingPaymentClient() {
         {deeplink && (
           <div style={{ margin: '20px 0' }}>
             <a href={deeplink} className="btn-primary" style={{ width: '100%', padding: '14px', fontSize: '15px' }}>
-              <span>Buka Aplikasi untuk Bayar</span>
+              <span>{tr.btnOpenAppToPay}</span>
               <ExternalLink size={16} />
             </a>
           </div>
@@ -501,17 +523,17 @@ export default function WaitingPaymentClient() {
         {paymentCode && (
           <div className="va-box">
             <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>
-              Kode Pembayaran {chargeData?.store?.toUpperCase()}
+              {tr.retailOutletLabel} {chargeData?.store?.toUpperCase()}
             </div>
             <div className="va-number">{paymentCode}</div>
             <button
               type="button"
               className="btn-primary"
-              onClick={() => copyText(paymentCode, 'Kode Pembayaran')}
+              onClick={() => copyText(paymentCode, 'paymentCode')}
               style={{ padding: '10px 24px', margin: '0 auto' }}
             >
               <Copy size={15} />
-              <span>Salin Kode Pembayaran</span>
+              <span>{tr.btnCopyCode}</span>
             </button>
           </div>
         )}
@@ -520,7 +542,7 @@ export default function WaitingPaymentClient() {
         <div style={{ marginTop: '28px', paddingTop: '20px', borderTop: '1px solid var(--color-border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'var(--color-text-secondary)', fontSize: '13px', marginBottom: '16px' }}>
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }} />
-            <span>Sistem mengecek status pembayaran otomatis secara real-time</span>
+            <span>{tr.autoCheckNotice}</span>
           </div>
 
           {checkStatusText && (
@@ -538,7 +560,7 @@ export default function WaitingPaymentClient() {
               style={{ padding: '10px 20px' }}
             >
               <RefreshCw size={15} className={checking ? 'animate-spin' : ''} />
-              <span>{checking ? 'Memeriksa...' : 'Cek Status Manual'}</span>
+              <span>{checking ? tr.checkingStatus : tr.btnCheckStatusManual}</span>
             </button>
 
             <button
@@ -559,15 +581,15 @@ export default function WaitingPaymentClient() {
                 cursor: 'pointer',
                 transition: 'all 0.2s ease'
               }}
-              title="Batalkan transaksi ini"
+              title={tr.btnCancel}
             >
               <XCircle size={15} />
-              <span>Batalkan Transaksi</span>
+              <span>{tr.btnCancel}</span>
             </button>
 
             <Link href="/#catalog" className="btn-secondary" style={{ padding: '10px 18px' }}>
               <ArrowLeft size={15} />
-              <span>Kembali</span>
+              <span>{tr.btnBack}</span>
             </Link>
           </div>
         </div>
@@ -575,7 +597,7 @@ export default function WaitingPaymentClient() {
         {/* GUARANTEE NOTE */}
         <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
           <ShieldCheck size={14} color="#22c55e" />
-          <span>Aktivasi otomatis &amp; License Key langsung muncul seketika setelah pembayaran sukses.</span>
+          <span>{tr.guaranteeNotice}</span>
         </div>
       </div>
 
@@ -639,10 +661,10 @@ export default function WaitingPaymentClient() {
               id="cancel-modal-title"
               style={{ fontSize: '20px', fontWeight: 800, marginBottom: '10px', color: 'var(--color-text, #ffffff)' }}
             >
-              Batalkan Transaksi?
+              {tr.cancelModalTitle}
             </h3>
             <p style={{ color: 'var(--color-text-secondary, #94a3b8)', fontSize: '14px', lineHeight: 1.6, marginBottom: '28px' }}>
-              Pesanan <strong style={{ fontFamily: 'monospace', color: 'var(--color-text, #ffffff)' }}>{orderId}</strong> akan dibatalkan secara permanen di sistem dan status pada Midtrans Gateway akan tercatat <strong>Cancelled</strong>.
+              {tr.cancelModalDesc(orderId)}
             </p>
 
             <div style={{ display: 'flex', gap: '12px' }}>
@@ -653,7 +675,7 @@ export default function WaitingPaymentClient() {
                 disabled={cancelling}
                 style={{ flex: 1, padding: '12px 18px', justifyContent: 'center', fontSize: '14px', fontWeight: 600 }}
               >
-                Kembali
+                {tr.btnBack}
               </button>
               <button
                 type="button"
@@ -681,12 +703,12 @@ export default function WaitingPaymentClient() {
                 {cancelling ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    <span>Membatalkan...</span>
+                    <span>{tr.cancelling}</span>
                   </>
                 ) : (
                   <>
                     <XCircle size={16} />
-                    <span>Ya, Batalkan</span>
+                    <span>{tr.btnCancelConfirm}</span>
                   </>
                 )}
               </button>
@@ -696,7 +718,15 @@ export default function WaitingPaymentClient() {
         document.body
       )}
 
-            <Toast message={toastMsg} show={showToast} onClose={() => setShowToast(false)} />
+      {/* TOAST NOTIFICATION */}
+      <Toast
+        message={toastMsg}
+        show={showToast}
+        onClose={() => setShowToast(false)}
+        position="top-right"
+        type={toastType}
+        duration={3500}
+      />
     </div>
   );
 }

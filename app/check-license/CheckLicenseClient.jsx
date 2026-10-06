@@ -3,8 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Search, CheckCircle2, AlertCircle, RefreshCw, Loader2 } from "lucide-react";
+import { useLang } from "@/context/LanguageContext";
+import t from "@/lib/translations";
 
 export default function CheckLicensePage() {
+  const { lang } = useLang();
+  const tr = t[lang]?.checkLicensePage || t.id.checkLicensePage;
+
   const [key, setKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -16,17 +21,17 @@ export default function CheckLicensePage() {
     setResult(null);
 
     if (!key.trim()) {
-      setErrorMsg("Masukkan License Key yang ingin diperiksa.");
+      setErrorMsg(tr.errInputEmpty);
       return;
     }
 
     setLoading(true);
 
     try {
-      const res = await fetch(`/api/licenses?id=${key.trim()}`);
+      const res = await fetch(`/api/licenses?id=${encodeURIComponent(key.trim())}`);
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Lisensi tidak ditemukan.");
+        throw new Error(data.error || tr.errNotFound);
       }
       setResult(data);
     } catch (err) {
@@ -41,21 +46,21 @@ export default function CheckLicensePage() {
       <div className="container" style={{ maxWidth: '680px' }}>
         {/* HEADER */}
         <div className="page-header-box">
-          <h1 className="page-title">Cek Status & Masa Aktif Lisensi</h1>
+          <h1 className="page-title">{tr.title}</h1>
           <p className="page-subtitle">
-            Periksa status keaslian, aplikasi terdaftar, dan sisa masa aktif lisensi software Anda.
+            {tr.subtitle}
           </p>
         </div>
 
         <div className="form-card">
           <form onSubmit={handleCheck}>
             <div className="form-group">
-              <label className="form-label">Masukkan License Key</label>
+              <label className="form-label">{tr.inputLabel}</label>
               <div className="license-search-row">
                 <input
                   type="text"
                   required
-                  placeholder="PRIMA-XXXX-XXXX-XXXX"
+                  placeholder={tr.inputPlaceholder}
                   className="form-input"
                   value={key}
                   onChange={(e) => setKey(e.target.value.toUpperCase())}
@@ -69,12 +74,12 @@ export default function CheckLicensePage() {
                   {loading ? (
                     <>
                       <Loader2 className="animate-spin" size={18} />
-                      <span>Memeriksa...</span>
+                      <span>{tr.checking}</span>
                     </>
                   ) : (
                     <>
                       <Search size={18} />
-                      <span>Periksa</span>
+                      <span>{tr.btnCheck}</span>
                     </>
                   )}
                 </button>
@@ -93,32 +98,32 @@ export default function CheckLicensePage() {
             <div style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '24px', marginTop: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#22c55e', fontWeight: 700, fontSize: '15px', marginBottom: '16px' }}>
                 <CheckCircle2 size={20} />
-                <span>Lisensi Terdaftar & Sah</span>
+                <span>{tr.validBadge}</span>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px' }}>
                 <div className="license-info-row">
-                  <span style={{ color: 'var(--color-text-secondary)' }}>Aplikasi</span>
+                  <span style={{ color: 'var(--color-text-secondary)' }}>{tr.labelApp}</span>
                   <strong>{result.appName}</strong>
                 </div>
                 <div className="license-info-row">
-                  <span style={{ color: 'var(--color-text-secondary)' }}>Pemilik Terdaftar</span>
+                  <span style={{ color: 'var(--color-text-secondary)' }}>{tr.labelOwner}</span>
                   <strong>{result.name}</strong>
                 </div>
                 <div className="license-info-row">
-                  <span style={{ color: 'var(--color-text-secondary)' }}>Status Lisensi</span>
+                  <span style={{ color: 'var(--color-text-secondary)' }}>{tr.labelStatus}</span>
                   <strong style={{ color: '#22c55e' }}>{result.status?.toUpperCase()}</strong>
                 </div>
                 <div className="license-info-row">
-                  <span style={{ color: 'var(--color-text-secondary)' }}>Masa Berlaku</span>
-                  <strong style={{ color: 'var(--color-accent)' }}>{result.expiryDate || 'Seumur Hidup (Lifetime)'}</strong>
+                  <span style={{ color: 'var(--color-text-secondary)' }}>{tr.labelExpiry}</span>
+                  <strong style={{ color: 'var(--color-accent)' }}>{result.expiryDate || tr.lifetime}</strong>
                 </div>
               </div>
 
               <div style={{ marginTop: '24px', textAlign: 'center' }}>
                 <Link href={`/renew?key=${encodeURIComponent(key.trim())}`} className="btn-primary" style={{ width: '100%', padding: '12px' }}>
                   <RefreshCw size={15} />
-                  <span>Perpanjang Lisensi Ini</span>
+                  <span>{tr.btnRenewThis}</span>
                 </Link>
               </div>
             </div>

@@ -3,11 +3,16 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
+import { useLang } from "@/context/LanguageContext";
+import t from "@/lib/translations";
 import { RefreshCw, Search, CheckCircle, AlertCircle, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 
 export default function RenewPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { lang } = useLang();
+  const tr = t[lang]?.renewPage || t.id.renewPage;
+
   const [licenseKey, setLicenseKey] = useState("");
   const [searching, setSearching] = useState(false);
   const [licenseData, setLicenseData] = useState(null);
@@ -23,7 +28,7 @@ export default function RenewPage() {
   const performLookup = useCallback(async (keyToLookup) => {
     const cleanKey = (keyToLookup || "").trim().toUpperCase();
     if (!cleanKey) {
-      setSearchError("Masukkan License Key yang ingin diperpanjang.");
+      setSearchError(tr.errInputEmpty);
       return;
     }
 
@@ -35,15 +40,15 @@ export default function RenewPage() {
       const res = await fetch(`/api/licenses?id=${encodeURIComponent(cleanKey)}`);
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Lisensi tidak ditemukan di sistem.");
+        throw new Error(data.error || tr.errNotFound);
       }
       setLicenseData(data);
     } catch (err) {
-      setSearchError(err.message || "Gagal memeriksa lisensi.");
+      setSearchError(err.message || tr.errCheckFailed);
     } finally {
       setSearching(false);
     }
-  }, []);
+  }, [tr]);
 
   const handleLookup = async (e) => {
     if (e) e.preventDefault();
@@ -83,7 +88,7 @@ export default function RenewPage() {
           action: 'renew_transaction',
           licenseKey: licenseKey.trim(),
           duration,
-          buyerName: licenseData?.name || 'Pelanggan',
+          buyerName: licenseData?.name || (lang === 'en' ? 'Customer' : 'Pelanggan'),
           buyerEmail: licenseData?.email || 'customer@primadev.id',
           paymentMethod
         })
@@ -91,7 +96,7 @@ export default function RenewPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Gagal memproses transaksi perpanjangan.");
+        throw new Error(data.error || tr.errRenewFailed);
       }
 
       sessionStorage.setItem('primadev_last_charge', JSON.stringify(data));
@@ -114,9 +119,9 @@ export default function RenewPage() {
       <div className="container" style={{ maxWidth: '800px' }}>
         {/* HEADER SECTION */}
         <div className="page-header-box">
-          <h1 className="page-title">Perpanjang Masa Aktif Lisensi</h1>
+          <h1 className="page-title">{tr.title}</h1>
           <p className="page-subtitle">
-            Masukkan License Key Anda untuk memperpanjang durasi masa aktif aplikasi tanpa reset konfigurasi.
+            {tr.subtitle}
           </p>
         </div>
 
@@ -124,11 +129,11 @@ export default function RenewPage() {
         <div className="form-card" style={{ marginBottom: '24px' }}>
           <form onSubmit={handleLookup}>
             <div className="form-group">
-              <label className="form-label">Masukkan License Key Anda</label>
+              <label className="form-label">{tr.inputLabel}</label>
               <div className="license-search-row">
                 <input
                   type="text"
-                  placeholder="Contoh: PRIMA-XXXX-XXXX-XXXX"
+                  placeholder={tr.inputPlaceholder}
                   value={licenseKey}
                   onChange={(e) => setLicenseKey(e.target.value.toUpperCase())}
                   className="form-input"
@@ -142,12 +147,12 @@ export default function RenewPage() {
                   {searching ? (
                     <>
                       <Loader2 className="animate-spin" size={18} />
-                      <span>Memeriksa...</span>
+                      <span>{tr.checking}</span>
                     </>
                   ) : (
                     <>
                       <Search size={16} />
-                      <span>Cek Lisensi</span>
+                      <span>{tr.btnCheck}</span>
                     </>
                   )}
                 </button>
@@ -171,33 +176,33 @@ export default function RenewPage() {
                 <span className="badge-green">
                   <CheckCircle size={13} /> {licenseData.status?.toUpperCase()}
                 </span>
-                <span className="badge-blue">{licenseData.appName || 'Aplikasi'}</span>
+                <span className="badge-blue">{licenseData.appName || (lang === 'en' ? 'Application' : 'Aplikasi')}</span>
               </div>
 
-              <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '16px' }}>Detail Lisensi Terdaftar</h3>
+              <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '16px' }}>{tr.detailsTitle}</h3>
 
               <div className="license-details-grid">
                 <div className="license-detail-item">
-                  <span className="license-detail-label">Nama Pemilik</span>
+                  <span className="license-detail-label">{tr.labelOwner}</span>
                   <strong className="license-detail-value">{licenseData.name}</strong>
                 </div>
                 <div className="license-detail-item">
-                  <span className="license-detail-label">Email</span>
+                  <span className="license-detail-label">{tr.labelEmail}</span>
                   <strong className="license-detail-value">{licenseData.email}</strong>
                 </div>
                 <div className="license-detail-item">
-                  <span className="license-detail-label">Tipe Paket Saat Ini</span>
+                  <span className="license-detail-label">{tr.labelPackage}</span>
                   <strong className="license-detail-value">{licenseData.type?.toUpperCase()}</strong>
                 </div>
                 <div className="license-detail-item">
-                  <span className="license-detail-label">Masa Berlaku Saat Ini</span>
-                  <strong className="license-detail-value accent">{licenseData.expiryDate || 'Seumur Hidup'}</strong>
+                  <span className="license-detail-label">{tr.labelExpiry}</span>
+                  <strong className="license-detail-value accent">{licenseData.expiryDate || tr.lifetime}</strong>
                 </div>
               </div>
             </div>
 
             <div className="form-card">
-              <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>Pilih Durasi Perpanjangan</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>{tr.selectDurationTitle}</h3>
 
               <div className="plan-tabs" style={{ marginBottom: '24px' }}>
                 <button
@@ -205,18 +210,18 @@ export default function RenewPage() {
                   className={`plan-tab ${duration === 'monthly' ? 'active' : ''}`}
                   onClick={() => setDuration('monthly')}
                 >
-                  Bulanan (1 Bulan)
+                  {tr.tabMonthly}
                 </button>
                 <button
                   type="button"
                   className={`plan-tab ${duration === 'yearly' ? 'active' : ''}`}
                   onClick={() => setDuration('yearly')}
                 >
-                  Tahunan (1 Tahun / Hemat)
+                  {tr.tabYearly}
                 </button>
               </div>
 
-              <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>Metode Pembayaran</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>{tr.paymentMethodTitle}</h3>
               <PaymentMethodSelector
                 selectedMethod={paymentMethod}
                 onSelect={(m) => setPaymentMethod(m)}
@@ -237,11 +242,11 @@ export default function RenewPage() {
                 {submitting ? (
                   <>
                     <Loader2 className="animate-spin" size={18} />
-                    <span>Memproses Transaksi...</span>
+                    <span>{tr.btnProcessing}</span>
                   </>
                 ) : (
                   <>
-                    <span>Bayar Perpanjangan Sekarang</span>
+                    <span>{tr.btnPay}</span>
                     <ArrowRight size={16} />
                   </>
                 )}
