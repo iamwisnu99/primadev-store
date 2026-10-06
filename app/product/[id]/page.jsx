@@ -34,8 +34,8 @@ export async function generateMetadata({ params }) {
 
   if (!product) {
     return {
-      title: "Produk Software Tidak Ditemukan | Primadev Store",
-      description: "Halaman produk software tidak ditemukan di katalog Primadev Store."
+      title: "Produk Software Tidak Ditemukan | Primadev Digital Technology",
+      description: "Halaman produk software tidak ditemukan di katalog Primadev Digital Technology."
     };
   }
 
@@ -50,7 +50,7 @@ export async function generateMetadata({ params }) {
       productName,
       `Lisensi ${productName}`,
       `Beli Lisensi ${productName}`,
-      "Primadev Store",
+      "Primadev Digital Technology",
       "Software Digital Resmi",
       "PT Primadev Digital Technology"
     ],
@@ -59,7 +59,7 @@ export async function generateMetadata({ params }) {
     },
     openGraph: {
       type: "website",
-      title: `${productName} | Beli Lisensi Resmi - Primadev Store`,
+      title: `${productName} | Beli Lisensi Resmi - Primadev Digital Technology`,
       description: desc,
       url: canonicalUrl,
       images: [
@@ -67,13 +67,13 @@ export async function generateMetadata({ params }) {
           url: "/primadev_light.png",
           width: 1200,
           height: 630,
-          alt: `${productName} - Primadev Store`
+          alt: `${productName} - Primadev Digital Technology`
         }
       ]
     },
     twitter: {
       card: "summary_large_image",
-      title: `${productName} | Primadev Store`,
+      title: `${productName} | Primadev Digital Technology`,
       description: desc,
       images: ["/primadev_light.png"]
     }

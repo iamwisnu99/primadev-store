@@ -20,7 +20,7 @@ import {
   LifeBuoy,
   ShoppingBag,
   ChevronRight,
-  ArrowLeft
+  ChevronLeft
 } from "lucide-react";
 
 const LANGUAGES = [
@@ -141,7 +141,7 @@ export default function Navbar() {
               aria-label={lang === 'en' ? 'Back' : 'Kembali'}
               title={lang === 'en' ? 'Back' : 'Kembali'}
             >
-              <ArrowLeft size={18} className="nav-back-arrow" />
+              <ChevronLeft size={19} className="nav-back-arrow" />
               <span>{lang === 'en' ? 'Back' : 'Kembali'}</span>
             </button>
           ) : (

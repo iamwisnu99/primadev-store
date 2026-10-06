@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import CheckoutClient from "./CheckoutClient";
 
 export const metadata = {
-  title: "Checkout Pembelian Lisensi | Primadev Store",
-  description: "Halaman checkout dan pembayaran lisensi software resmi Primadev Store.",
+  title: "Checkout Pembelian Lisensi | Primadev Digital Technology",
+  description: "Halaman checkout dan pembayaran lisensi software resmi Primadev Digital Technology.",
   robots: {
     index: false,
     follow: false

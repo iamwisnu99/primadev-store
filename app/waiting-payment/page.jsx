@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import WaitingPaymentClient from "./WaitingPaymentClient";
 
 export const metadata = {
-  title: "Menunggu Pembayaran | Primadev Store",
-  description: "Instruksi dan verifikasi pembayaran lisensi software Primadev Store.",
+  title: "Menunggu Pembayaran | Primadev Digital Technology",
+  description: "Instruksi dan verifikasi pembayaran lisensi software Primadev Digital Technology.",
   robots: {
     index: false,
     follow: false

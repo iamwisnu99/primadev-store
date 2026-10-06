@@ -127,7 +127,7 @@ const jsonLdData = {
       },
       "address": {
         "@type": "PostalAddress",
-        "streetAddress": "Wangon",
+        "streetAddress": "Wangon RT 001/RW 010, Kelurahan Wangon",
         "addressLocality": "Kecamatan Wangon, Kabupaten Banyumas",
         "addressRegion": "Jawa Tengah",
         "postalCode": "53176",

@@ -1,10 +1,10 @@
 ﻿import SupportClient from "./SupportClient";
 
 export const metadata = {
-  title: "Pusat Bantuan & Layanan Pelanggan | Primadev Store",
+  title: "Pusat Bantuan & Layanan Pelanggan | Primadev Digital Technology",
   description: "Hubungi tim teknis dan layanan pelanggan PT Primadev Digital Technology untuk kendala aktivasi lisensi, status pembayaran, atau konsultasi aplikasi.",
   keywords: [
-    "Bantuan Primadev Store",
+    "Bantuan Primadev Digital Technology",
     "Customer Support Primadev",
     "Kontak Primadev",
     "WhatsApp Support Primadev",
@@ -15,14 +15,14 @@ export const metadata = {
     canonical: "https://store.primadev.id/support"
   },
   openGraph: {
-    title: "Pusat Bantuan & Layanan Pelanggan | Primadev Store",
+    title: "Pusat Bantuan & Layanan Pelanggan | Primadev Digital Technology",
     description: "Layanan bantuan teknis dan customer service 24/7 resmi dari PT Primadev Digital Technology.",
     url: "https://store.primadev.id/support",
-    images: [{ url: "/primadev_light.png", width: 1200, height: 630, alt: "Bantuan Primadev Store" }]
+    images: [{ url: "/primadev_light.png", width: 1200, height: 630, alt: "Bantuan Primadev Digital Technology" }]
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pusat Bantuan & Customer Support | Primadev Store",
+    title: "Pusat Bantuan & Customer Support | Primadev Digital Technology",
     description: "Hubungi tim pengembang dan customer support resmi Primadev Digital Technology.",
     images: ["/primadev_light.png"]
   }

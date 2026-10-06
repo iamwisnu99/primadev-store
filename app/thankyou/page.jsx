@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import ThankyouClient from "./ThankyouClient";
 
 export const metadata = {
-  title: "Pembayaran Berhasil | Primadev Store",
-  description: "Konfirmasi pembayaran sukses dan penerimaan license key software resmi Primadev Store.",
+  title: "Pembayaran Berhasil | Primadev Digital Technology",
+  description: "Konfirmasi pembayaran sukses dan penerimaan license key software resmi Primadev Digital Technology.",
   robots: {
     index: false,
     follow: false

@@ -1,7 +1,7 @@
 ﻿import CheckLicenseClient from "./CheckLicenseClient";
 
 export const metadata = {
-  title: "Cek Status & Masa Aktif Lisensi Software | Primadev Store",
+  title: "Cek Status & Masa Aktif Lisensi Software | Primadev Digital Technology",
   description: "Periksa keaslian lisensi, aplikasi terdaftar, status masa aktif, dan validitas kepemilikan software Primadev Digital Technology Anda secara online.",
   keywords: [
     "Cek Lisensi Software",
@@ -9,20 +9,20 @@ export const metadata = {
     "Check License Key",
     "Status Lisensi Aplikasi",
     "Cek Masa Aktif Lisensi",
-    "Primadev Store"
+    "Primadev Digital Technology"
   ],
   alternates: {
     canonical: "https://store.primadev.id/check-license"
   },
   openGraph: {
-    title: "Cek Status & Keaslian Lisensi Software | Primadev Store",
+    title: "Cek Status & Keaslian Lisensi Software | Primadev Digital Technology",
     description: "Periksa status keaslian, aplikasi terdaftar, dan sisa masa aktif lisensi software Anda.",
     url: "https://store.primadev.id/check-license",
-    images: [{ url: "/primadev_light.png", width: 1200, height: 630, alt: "Cek Lisensi Primadev Store" }]
+    images: [{ url: "/primadev_light.png", width: 1200, height: 630, alt: "Cek Lisensi Primadev Digital Technology" }]
   },
   twitter: {
     card: "summary_large_image",
-    title: "Cek Status & Keaslian Lisensi | Primadev Store",
+    title: "Cek Status & Keaslian Lisensi | Primadev Digital Technology",
     description: "Periksa keaslian dan masa berlaku lisensi aplikasi software Anda.",
     images: ["/primadev_light.png"]
   }
