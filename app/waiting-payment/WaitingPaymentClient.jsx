@@ -95,6 +95,19 @@ export default function WaitingPaymentClient() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showCancelModal, cancelling]);
 
+  // Listen for navbar back button click to trigger cancel confirmation modal
+  useEffect(() => {
+    const handleOpenCancelFromNav = () => {
+      if (isCancelled) {
+        router.push('/#catalog');
+      } else {
+        setShowCancelModal(true);
+      }
+    };
+    window.addEventListener('primadev:open-cancel-modal', handleOpenCancelFromNav);
+    return () => window.removeEventListener('primadev:open-cancel-modal', handleOpenCancelFromNav);
+  }, [isCancelled, router]);
+
   const copyText = (text, labelKey) => {
     if (!text) return;
     navigator.clipboard.writeText(text);

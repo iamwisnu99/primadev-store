@@ -235,6 +235,60 @@ html.light .navbar {
   align-items: center;
 }
 
+.nav-back-brand-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text);
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.nav-back-brand-btn:hover {
+  background: rgba(3, 110, 253, 0.12);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.nav-back-brand-btn .nav-back-arrow {
+  transition: transform 0.2s ease;
+}
+
+.nav-back-brand-btn:hover .nav-back-arrow {
+  transform: translateX(-3px);
+}
+
+[data-theme="light"] .nav-back-brand-btn,
+html.light .nav-back-brand-btn {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+[data-theme="light"] .nav-back-brand-btn:hover,
+html.light .nav-back-brand-btn:hover {
+  background: #eff6ff;
+  border-color: #036efd;
+  color: #036efd;
+}
+
+@media (max-width: 768px) {
+  .nav-back-brand-btn {
+    height: 36px;
+    padding: 0 12px;
+    font-size: 13.5px;
+    gap: 6px;
+  }
+}
+
 /* Desktop Nav Links (Completely transparent on desktop) */
 .nav-links {
   display: flex;

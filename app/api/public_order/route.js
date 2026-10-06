@@ -439,7 +439,11 @@ export async function POST(req) {
       }
 
       const license = licSnap.val();
-      const appId = license.appId;
+      const appId = license.appId || license.app_id || (
+        license.appName?.toLowerCase().includes('struk') ? 'spbu-struk' :
+        license.appName?.toLowerCase().includes('kasir') ? 'kasir_q' :
+        license.appName?.toLowerCase().includes('direct') ? 'whatsapp_direct' : 'spbu-struk'
+      );
 
       // Validate appId from license is also safe
       if (!appId || !SAFE_APP_ID_RE.test(appId)) {

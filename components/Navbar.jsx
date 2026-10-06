@@ -19,7 +19,8 @@ import {
   Search,
   LifeBuoy,
   ShoppingBag,
-  ChevronRight
+  ChevronRight,
+  ArrowLeft
 } from "lucide-react";
 
 const LANGUAGES = [
@@ -48,7 +49,24 @@ export default function Navbar() {
   const [langOpen, setLangOpen] = useState(false);
   const langDropdownRef = useRef(null);
 
+  const isCheckout = pathname === '/checkout';
+  const isWaitingPayment = pathname === '/waiting-payment';
+  const isCheckoutOrWaiting = isCheckout || isWaitingPayment;
+
   const activeLang = LANGUAGES.find((l) => l.code === lang) || LANGUAGES[0];
+
+  const handleNavBackClick = (e) => {
+    if (e) e.preventDefault();
+    if (isWaitingPayment) {
+      window.dispatchEvent(new CustomEvent('primadev:open-cancel-modal'));
+    } else {
+      if (typeof window !== 'undefined' && window.history.length > 1) {
+        router.back();
+      } else {
+        router.push('/#catalog');
+      }
+    }
+  };
 
   const handleCatalogScroll = (e) => {
     setMobileOpen(false);
@@ -114,23 +132,36 @@ export default function Navbar() {
     <>
       <header className="navbar">
         <div className="container nav-container">
-          {/* BRAND LOGO */}
-          <Link
-            href="/"
-            className="nav-brand"
-            aria-label="Primadev Digital Technology"
-            onClick={() => setMobileOpen(false)}
-          >
-            <Image
-              src={theme === 'light' ? '/primadev_light.png' : '/primadev_dark.png'}
-              alt="Primadev Digital Technology"
-              width={140}
-              height={38}
-              priority
-              className="site-logo-img"
-              style={{ width: 'auto', height: '34px' }}
-            />
-          </Link>
+          {/* BRAND LOGO OR BACK BUTTON ON CHECKOUT & WAITING PAYMENT */}
+          {isCheckoutOrWaiting ? (
+            <button
+              type="button"
+              className="nav-back-brand-btn"
+              onClick={handleNavBackClick}
+              aria-label={lang === 'en' ? 'Back' : 'Kembali'}
+              title={lang === 'en' ? 'Back' : 'Kembali'}
+            >
+              <ArrowLeft size={18} className="nav-back-arrow" />
+              <span>{lang === 'en' ? 'Back' : 'Kembali'}</span>
+            </button>
+          ) : (
+            <Link
+              href="/"
+              className="nav-brand"
+              aria-label="Primadev Digital Technology"
+              onClick={() => setMobileOpen(false)}
+            >
+              <Image
+                src={theme === 'light' ? '/primadev_light.png' : '/primadev_dark.png'}
+                alt="Primadev Digital Technology"
+                width={140}
+                height={38}
+                priority
+                className="site-logo-img"
+                style={{ width: 'auto', height: '34px' }}
+              />
+            </Link>
+          )}
 
           {/* DESKTOP NAV LINKS & MOBILE MENU DRAWER */}
           <nav className={`nav-links ${mobileOpen ? 'open' : ''}`}>
@@ -222,13 +253,15 @@ export default function Navbar() {
             </div>
 
             {/* DESKTOP ONLY CTA BUY LICENSE BUTTON */}
-            <Link
-              href="/#catalog"
-              className="btn-primary nav-cta-btn nav-cta-desktop"
-              onClick={handleCatalogScroll}
-            >
-              <span>{tr.cta}</span>
-            </Link>
+            {!isCheckoutOrWaiting && (
+              <Link
+                href="/#catalog"
+                className="btn-primary nav-cta-btn nav-cta-desktop"
+                onClick={handleCatalogScroll}
+              >
+                <span>{tr.cta}</span>
+              </Link>
+            )}
 
             {/* HAMBURGER TOGGLE */}
             <button

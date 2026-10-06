@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import PaymentMethodSelector from "@/components/PaymentMethodSelector";
 import { useLang } from "@/context/LanguageContext";
 import t from "@/lib/translations";
-import { RefreshCw, Search, CheckCircle, AlertCircle, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
+import { RefreshCw, Search, CheckCircle, AlertCircle, ArrowRight, Loader2, ShieldCheck, Tag } from "lucide-react";
 
 export default function RenewPage() {
   const router = useRouter();
@@ -24,6 +24,25 @@ export default function RenewPage() {
   const [actionError, setActionError] = useState("");
 
   const initialKeyHandled = useRef(false);
+
+  const formatRupiah = (num) => {
+    if (!num) return 'Rp 0';
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      maximumFractionDigits: 0
+    }).format(num);
+  };
+
+  const monthlyPrice = licenseData?.price?.monthly || (
+    licenseData?.appId === 'kasir_q' ? 59000 :
+    licenseData?.appId === 'whatsapp_direct' ? 29000 : 39000
+  );
+  const yearlyPrice = licenseData?.price?.yearly || (
+    licenseData?.appId === 'kasir_q' ? 1699000 :
+    licenseData?.appId === 'whatsapp_direct' ? 290000 : 599000
+  );
+  const activePrice = duration === 'monthly' ? monthlyPrice : yearlyPrice;
 
   const performLookup = useCallback(async (keyToLookup) => {
     const cleanKey = (keyToLookup || "").trim().toUpperCase();
@@ -204,21 +223,63 @@ export default function RenewPage() {
             <div className="form-card">
               <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>{tr.selectDurationTitle}</h3>
 
-              <div className="plan-tabs" style={{ marginBottom: '24px' }}>
+              <div className="plan-tabs" style={{ marginBottom: '20px' }}>
                 <button
                   type="button"
                   className={`plan-tab ${duration === 'monthly' ? 'active' : ''}`}
                   onClick={() => setDuration('monthly')}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '12px 16px' }}
                 >
-                  {tr.tabMonthly}
+                  <span style={{ fontWeight: 700 }}>{tr.tabMonthly}</span>
+                  <span style={{
+                    fontSize: '14px',
+                    fontWeight: 800,
+                    color: duration === 'monthly' ? '#ffffff' : 'var(--color-accent)'
+                  }}>
+                    {formatRupiah(monthlyPrice)}
+                  </span>
                 </button>
                 <button
                   type="button"
                   className={`plan-tab ${duration === 'yearly' ? 'active' : ''}`}
                   onClick={() => setDuration('yearly')}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '12px 16px' }}
                 >
-                  {tr.tabYearly}
+                  <span style={{ fontWeight: 700 }}>{tr.tabYearly}</span>
+                  <span style={{
+                    fontSize: '14px',
+                    fontWeight: 800,
+                    color: duration === 'yearly' ? '#ffffff' : 'var(--color-accent)'
+                  }}>
+                    {formatRupiah(yearlyPrice)}
+                  </span>
                 </button>
+              </div>
+
+              {/* RENEWAL PRICE SUMMARY BOX */}
+              <div style={{
+                background: 'var(--color-surface-2)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '12px',
+                padding: '16px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '24px'
+              }}>
+                <div>
+                  <div style={{ fontSize: '13.5px', color: 'var(--color-text)', fontWeight: 700 }}>
+                    {lang === 'en' ? 'Renewal Cost Total:' : 'Total Biaya Perpanjangan:'}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                    {duration === 'monthly'
+                      ? (lang === 'en' ? 'Package: 1 Month Validity' : 'Paket: 1 Bulan Masa Aktif')
+                      : (lang === 'en' ? 'Package: 1 Year Validity' : 'Paket: 1 Tahun Masa Aktif')}
+                  </div>
+                </div>
+                <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--color-accent)' }}>
+                  {formatRupiah(activePrice)}
+                </div>
               </div>
 
               <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>{tr.paymentMethodTitle}</h3>
@@ -246,7 +307,7 @@ export default function RenewPage() {
                   </>
                 ) : (
                   <>
-                    <span>{tr.btnPay}</span>
+                    <span>{tr.btnPay} ({formatRupiah(activePrice)})</span>
                     <ArrowRight size={16} />
                   </>
                 )}
