@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useLang } from "@/context/LanguageContext";
 import t from "@/lib/translations";
 import ProductCard from "@/components/ProductCard";
 import ProductDetailModal from "@/components/ProductDetailModal";
-import { Sparkles, ShieldCheck, Zap, RefreshCw, ChevronDown, ArrowRight } from "lucide-react";
+import { Sparkles, ShieldCheck, Zap, RefreshCw, ChevronDown, ArrowRight, Check } from "lucide-react";
 
 export default function StoreClientView({ initialProducts = {} }) {
   useEffect(() => {
@@ -54,35 +55,59 @@ export default function StoreClientView({ initialProducts = {} }) {
 
   return (
     <>
-      {/* HERO SECTION (Badge Removed as requested) */}
+      {/* HERO SECTION — two-column: copy left, store image right */}
       <section className="hero-section">
-        <div className="container">
-          <h1 className="hero-title">{tr.hero.title}</h1>
-          <p className="hero-subtitle">{tr.hero.subtitle}</p>
+        <div className="container hero-grid">
+          <div className="hero-content">
+            <span className="hero-eyebrow">{tr.hero.eyebrow}</span>
+            <h1 className="hero-title">{tr.hero.title}</h1>
+            <p className="hero-subtitle">{tr.hero.subtitle}</p>
 
-          <div className="hero-cta-group">
-            <a href="#catalog" className="btn-primary">
-              <span>{tr.hero.btnBrowse}</span>
-              <ArrowRight size={16} />
-            </a>
-            <Link href="/renew" className="btn-secondary">
-              <RefreshCw size={16} />
-              <span>{tr.hero.btnRenew}</span>
-            </Link>
+            <div className="hero-cta-group">
+              <a href="#catalog" className="btn-primary">
+                <span>{tr.hero.btnBrowse}</span>
+                <ArrowRight size={16} />
+              </a>
+              <Link href="/renew" className="btn-secondary">
+                <RefreshCw size={16} />
+                <span>{tr.hero.btnRenew}</span>
+              </Link>
+            </div>
+
+            <dl className="hero-stats-row">
+              <div className="stat-item">
+                <dt className="stat-val">{tr.hero.stat1_val}</dt>
+                <dd className="stat-lbl">{tr.hero.stat1_label}</dd>
+              </div>
+              <div className="stat-item">
+                <dt className="stat-val">{tr.hero.stat2_val}</dt>
+                <dd className="stat-lbl">{tr.hero.stat2_label}</dd>
+              </div>
+              <div className="stat-item">
+                <dt className="stat-val">{tr.hero.stat3_val}</dt>
+                <dd className="stat-lbl">{tr.hero.stat3_label}</dd>
+              </div>
+            </dl>
           </div>
 
-          <div className="hero-stats-row">
-            <div className="stat-card">
-              <div className="stat-val">{tr.hero.stat1_val}</div>
-              <div className="stat-lbl">{tr.hero.stat1_label}</div>
+          <div className="hero-visual">
+            <div className="hero-image-frame">
+              <Image
+                src="/hero-store.jpg"
+                alt={tr.hero.imageAlt}
+                fill
+                sizes="(max-width: 960px) 100vw, 540px"
+                loading="eager"
+                fetchPriority="high"
+                className="hero-image"
+              />
             </div>
-            <div className="stat-card">
-              <div className="stat-val">{tr.hero.stat2_val}</div>
-              <div className="stat-lbl">{tr.hero.stat2_label}</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-val">{tr.hero.stat3_val}</div>
-              <div className="stat-lbl">{tr.hero.stat3_label}</div>
+            <div className="hero-float-card" aria-hidden="true">
+              <span className="hero-float-icon"><Check size={16} strokeWidth={3} /></span>
+              <span>
+                <strong>{tr.hero.badgeTitle}</strong>
+                <small>{tr.hero.badgeDesc}</small>
+              </span>
             </div>
           </div>
         </div>

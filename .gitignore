@@ -62,3 +62,4 @@ coverage/
 .cache/
 .vercel
 .env*
+.prod
