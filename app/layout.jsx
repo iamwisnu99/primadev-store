@@ -1,16 +1,18 @@
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const inter = Inter({
-  subsets: ["latin"],
+// Inter is self-hosted (variable font, latin subset) so builds don't depend on
+// fetching from Google Fonts — that fetch was failing on Vercel builds.
+const inter = localFont({
+  src: "./fonts/InterVariable-latin.woff2",
   variable: "--font-inter",
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: "300 900",
   display: "swap",
 });
 
